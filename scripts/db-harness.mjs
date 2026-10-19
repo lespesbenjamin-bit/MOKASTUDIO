@@ -24,6 +24,18 @@ export async function createDb({ log = true } = {}) {
     grant select, references on auth.users to app_owner;
     grant usage, create on schema public to app_owner;
     grant usage on schema public to anon, authenticated, service_role;
+    -- Imitation minimale de Supabase Storage (buckets + objets sous RLS)
+    create schema storage;
+    create table storage.buckets (id text primary key, name text not null, public boolean default false,
+      file_size_limit bigint, allowed_mime_types text[]);
+    create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text references storage.buckets (id),
+      name text not null, owner uuid, created_at timestamptz default now());
+    alter table storage.objects enable row level security;
+    alter table storage.buckets owner to app_owner;
+    alter table storage.objects owner to app_owner;
+    grant usage on schema storage to anon, authenticated, service_role, app_owner;
+    grant select on storage.objects to authenticated;
+    grant all on storage.objects, storage.buckets to service_role;
   `);
   await db.exec('set role app_owner');
   for (const f of readdirSync(MIGRATIONS).filter((f) => f.endsWith('.sql')).sort()) {
