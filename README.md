@@ -41,8 +41,8 @@ Tout se fait dans le navigateur ; aucun logiciel n'est nécessaire sur votre ord
 
 **Authentication** :
 - *Sign In / Providers → Email* : désactivez **Allow new users to sign up** (seul l'admin crée des comptes).
-- *URL Configuration* : **Site URL** = l'adresse du site (ex. `https://mokaon.app`) ;
-  **Redirect URLs** : ajoutez `https://mokaon.app/**` et `https://<projet>.vercel.app/**`.
+- *URL Configuration* : **Site URL** = l'adresse du site (ex. `https://www.mokacrm.app`) ;
+  **Redirect URLs** : ajoutez `https://www.mokacrm.app/**` et `https://<projet>.vercel.app/**`.
 
 ### 1.3 Premier administrateur
 
@@ -63,7 +63,7 @@ Tout se fait dans le navigateur ; aucun logiciel n'est nécessaire sur votre ord
    - `VITE_SUPABASE_ANON_KEY` = clé *publishable* / *anon* (jamais la clé *secret* / *service_role*).
 3. **Deploy**. Chaque envoi sur GitHub redéploie automatiquement.
 
-### 1.6 Domaine personnalisé (mokaon.app)
+### 1.6 Domaine personnalisé (www.mokacrm.app)
 
 Vercel → **Settings → Domains** → ajouter le domaine, puis chez le fournisseur du domaine (zone DNS) :
 enregistrement **A** `@` et **CNAME** `www` avec les valeurs indiquées par Vercel (« View DNS configuration »).
