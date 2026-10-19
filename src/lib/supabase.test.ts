@@ -14,3 +14,13 @@ describe('humanizeError', () => {
     expect(humanizeError(new Error('Un compte existe déjà avec cet email'))).toBe('Un compte existe déjà avec cet email');
   });
 });
+
+import { normalizeSupabaseUrl } from './supabase';
+describe('normalizeSupabaseUrl', () => {
+  it('retire chemins, slash final, espaces et guillemets', () => {
+    expect(normalizeSupabaseUrl('https://abc.supabase.co/rest/v1/')).toBe('https://abc.supabase.co');
+    expect(normalizeSupabaseUrl(' https://abc.supabase.co/ ')).toBe('https://abc.supabase.co');
+    expect(normalizeSupabaseUrl('"https://abc.supabase.co"')).toBe('https://abc.supabase.co');
+    expect(normalizeSupabaseUrl('pas une url')).toBeUndefined();
+  });
+});

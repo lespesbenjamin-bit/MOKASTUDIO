@@ -1,8 +1,22 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+/**
+ * Garde uniquement « https://xxxx.supabase.co » : tolère un espace, un « / »
+ * final ou un chemin collé par erreur (ex. « …/rest/v1/ » copié depuis Data API).
+ */
+export function normalizeSupabaseUrl(raw: string | undefined): string | undefined {
+  const v = raw?.trim().replace(/^["']|["']$/g, '');
+  if (!v) return undefined;
+  try {
+    return new URL(v).origin;
+  } catch {
+    return undefined;
+  }
+}
+
+const url = normalizeSupabaseUrl(import.meta.env.VITE_SUPABASE_URL as string | undefined);
+const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.trim().replace(/^["']|["']$/g, '');
 
 /** false si les variables d'environnement ne sont pas renseignées. */
 export const isSupabaseConfigured = Boolean(url && anonKey && /^https:\/\//.test(url));
