@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { Briefcase, Columns3, List, Plus, Search, X } from 'lucide-react';
+import { Briefcase, Columns3, List, Plus, Search, Upload, X } from 'lucide-react';
 import { LEAD_STATUSES, OPEN_STATUSES, SOURCE_LABELS, STATUS_LABELS, contactName, daysFromToday, normalizeSearch } from '@/lib/crm';
 import { humanizeError } from '@/lib/supabase';
 import { useAuth } from '@/features/auth/AuthProvider';
@@ -10,6 +10,7 @@ import { useLeads, useStaleDays, useTeam } from './api';
 import { KanbanBoard } from './KanbanBoard';
 import { LeadsTable } from './LeadsTable';
 import { NewLeadModal } from './LeadForm';
+import { ImportModal } from '@/features/import/ImportModal';
 import type { LeadOverview, LeadSource, LeadStatus } from './types';
 
 type View = 'kanban' | 'table';
@@ -34,6 +35,7 @@ export function LeadsPage() {
   const [params, setParams] = useSearchParams();
   const [view, setViewState] = useState<View>(readView);
   const [newOpen, setNewOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
 
   const q = params.get('q') ?? '';
   const owner = params.get('responsable') ?? '';
@@ -107,7 +109,14 @@ export function LeadsPage() {
       <PageHeader
         title="Prospects"
         description={leads.data ? `${leads.data.filter((l) => OPEN_STATUSES.includes(l.status)).length} prospects en cours` : undefined}
-        actions={<Button icon={<Plus className="h-4 w-4" />} onClick={() => setNewOpen(true)}>Nouveau prospect</Button>}
+        actions={
+          <>
+            {isAdmin && (
+              <Button variant="secondary" icon={<Upload className="h-4 w-4" />} onClick={() => setImportOpen(true)}>Importer</Button>
+            )}
+            <Button icon={<Plus className="h-4 w-4" />} onClick={() => setNewOpen(true)}>Nouveau prospect</Button>
+          </>
+        }
       />
 
       <div className="mb-4 space-y-3">
@@ -184,7 +193,7 @@ export function LeadsPage() {
       ) : leads.data.length === 0 ? (
         <Card>
           <EmptyState icon={<Briefcase className="h-8 w-8" />} title="Aucun prospect pour l’instant">
-            Créez votre premier prospect pour démarrer le pipeline.
+            Créez votre premier prospect{isAdmin ? ' ou importez un fichier Excel' : ''} pour démarrer le pipeline.
           </EmptyState>
         </Card>
       ) : view === 'kanban' ? (
@@ -206,6 +215,7 @@ export function LeadsPage() {
       )}
 
       <NewLeadModal open={newOpen} onClose={() => setNewOpen(false)} />
+      {isAdmin && <ImportModal open={importOpen} onClose={() => setImportOpen(false)} />}
     </>
   );
 }

@@ -14,6 +14,22 @@ Stack : React · TypeScript · Vite · Tailwind · Supabase · Vercel.
 
 ---
 
+## Import de prospects (admin)
+
+Dans le **SQL Editor** de Supabase, exécute `supabase/migrations/20261019001100_import_leads.sql`.
+
+Bouton **Importer** sur la page Prospects (administrateur uniquement) :
+1. **Fichier** : Excel (.xlsx) ou CSV (y compris CSV Excel français, séparateur « ; »), 2 000 lignes max.
+   Un modèle est téléchargeable.
+2. **Colonnes** : reconnaissance automatique des en-têtes courants, modifiable.
+3. **Vérification** : simulation complète sans rien écrire — prêtes / doublons (en base ou
+   dans le fichier) / erreurs / avertissements. Choix de la source, du commercial et de la 1ʳᵉ relance.
+4. **Import** : seules les lignes prêtes sont créées, en « À contacter », avec « Importé depuis… »
+   dans l'historique. Rapport CSV téléchargeable.
+
+Nettoyage automatique : 0 initial rétabli sur téléphones et codes postaux (perdu par Excel),
+SIRET → SIREN, champs mal formés ignorés avec avertissement. Réimporter le même fichier ne crée aucun doublon.
+
 ## Mise à jour étape 3
 
 Dans le **SQL Editor** de Supabase, exécute le fichier
@@ -109,7 +125,7 @@ Connecte-toi avec ton compte admin, puis va dans **Utilisateurs → Inviter**.
 ## Tests
 
 ```bash
-npm run db:test      # schéma (31) + permissions par rôle (84) + CRM (40) sur PostgreSQL embarqué
+npm run db:test      # schéma (31) + permissions (84) + CRM (40) + import (12) sur PostgreSQL embarqué
 npm test             # tests unitaires du front
 npm run typecheck
 ```

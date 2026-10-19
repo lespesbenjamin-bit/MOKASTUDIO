@@ -13,14 +13,16 @@
     "test": "vitest run",
     "db:verify": "node scripts/verify-schema.mjs",
     "db:test-rls": "node scripts/test-rls.mjs",
-    "db:test": "npm run -s db:verify && npm run -s db:test-rls && npm run -s db:test-crm",
-    "db:test-crm": "node scripts/test-crm.mjs"
+    "db:test": "npm run -s db:verify && npm run -s db:test-rls && npm run -s db:test-crm && npm run -s db:test-import",
+    "db:test-crm": "node scripts/test-crm.mjs",
+    "db:test-import": "node scripts/test-import.mjs"
   },
   "private": true,
   "type": "module",
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.10",
     "@types/node": "^22.20.5",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",
@@ -38,10 +40,12 @@
     "@tanstack/react-query": "^5.104.4",
     "clsx": "^2.1.1",
     "lucide-react": "^1.59.0",
+    "papaparse": "^5.7.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.90.0",
     "react-router-dom": "^6.30.6",
+    "read-excel-file": "^9.3.12",
     "zod": "^3.25.76"
   },
   "engines": {

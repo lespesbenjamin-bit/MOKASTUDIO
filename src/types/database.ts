@@ -87,6 +87,11 @@ export type Referral = {
   created_at: string; status_changed_at: string;
 };
 
+export type ImportReport = {
+  dry_run: boolean; total: number; imported: number; duplicates: number; errors: number;
+  rows: { line: number; status: 'importe' | 'doublon' | 'erreur'; message?: string }[];
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -131,6 +136,17 @@ export type Database = {
       };
       my_referrals: { Args: Record<PropertyKey, never>; Returns: Referral[] };
       lead_timeline: { Args: { p_lead_id: string }; Returns: TimelineEntry[] };
+      import_leads: {
+        Args: {
+          p_rows: { company: Record<string, string | null>; contact: Record<string, string | null>; notes: string | null }[];
+          p_source?: LeadSource;
+          p_owner_id?: string | null;
+          p_next_follow_up?: string | null;
+          p_file_name?: string | null;
+          p_dry_run?: boolean;
+        };
+        Returns: ImportReport;
+      };
     };
     Enums: {
       user_role: UserRole; lead_status: LeadStatus; lead_source: LeadSource; activity_kind: ActivityKind;

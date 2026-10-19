@@ -164,8 +164,11 @@ export function FullPageSpinner() {
 }
 
 // --- Modale -----------------------------------------------------------------
-type ModalProps = { open: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; footer?: ReactNode };
-export function Modal({ open, onClose, title, description, children, footer }: ModalProps) {
+type ModalProps = {
+  open: boolean; onClose: () => void; title: string; description?: string; children: ReactNode; footer?: ReactNode;
+  size?: 'md' | 'lg' | 'xl';
+};
+export function Modal({ open, onClose, title, description, children, footer, size = 'md' }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     const d = ref.current;
@@ -179,7 +182,7 @@ export function Modal({ open, onClose, title, description, children, footer }: M
       ref={ref}
       onClose={onClose}
       onCancel={(e) => { e.preventDefault(); onClose(); }}
-      className="m-auto w-[calc(100%-2rem)] max-w-md rounded-2xl border border-beige-300 bg-white p-0 text-anthracite shadow-xl backdrop:bg-anthracite/40 backdrop:backdrop-blur-[2px]"
+      className={clsx('m-auto w-[calc(100%-2rem)] rounded-2xl', { md: 'max-w-md', lg: 'max-w-2xl', xl: 'max-w-4xl' }[size], ' border border-beige-300 bg-white p-0 text-anthracite shadow-xl backdrop:bg-anthracite/40 backdrop:backdrop-blur-[2px]')}
     >
       {open && (
         <div className="flex max-h-[85vh] flex-col">
