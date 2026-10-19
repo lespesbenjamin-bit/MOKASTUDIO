@@ -1,7 +1,7 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { isSupabaseConfigured } from '@/lib/supabase';
+import { isDemo, isSupabaseConfigured } from '@/lib/supabase';
 import { AuthProvider } from '@/features/auth/AuthProvider';
 import { AuthLayout } from '@/features/auth/AuthLayout';
 import { LoginPage } from '@/features/auth/LoginPage';
@@ -38,18 +38,22 @@ function MissingConfig() {
         Renseignez <code>VITE_SUPABASE_URL</code> et <code>VITE_SUPABASE_ANON_KEY</code> dans <code>.env.local</code> (en local)
         ou dans les variables d'environnement Vercel, puis relancez.
       </Alert>
+      <a href="/demo" className="mt-4 inline-block text-sm font-medium text-terracotta-700 hover:underline">
+        Découvrir l’application en mode démonstration →
+      </a>
     </AuthLayout>
   );
 }
 
 export function App() {
-  if (!isSupabaseConfigured) return <MissingConfig />;
+  if (!isSupabaseConfigured && !isDemo) return <MissingConfig />;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <BrowserRouter>
           <Routes>
+            <Route path="/demo" element={<Navigate to="/" replace />} />
             <Route path="/connexion" element={<LoginPage />} />
             <Route path="/definir-mot-de-passe" element={<SetPasswordPage />} />
             <Route element={<RequireAuth />}>

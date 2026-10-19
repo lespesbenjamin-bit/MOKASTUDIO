@@ -6,6 +6,7 @@ import { OFFER_LABELS, formatDate } from '@/lib/sales';
 import { humanizeError } from '@/lib/supabase';
 import type { BeneficiaryRole, CommissionRuleRow, OfferCode, OfferRow } from '@/types/database';
 import { Alert, Badge, Button, Card, Field, Input, Modal, PageHeader, Spinner } from '@/components/ui';
+import { BackupCard } from './BackupCard';
 import { useAppSettings, useOffers, usePublishRule, useRules, useUpdateOffer, useUpdateSettings } from '@/features/sales/api';
 
 // --- Offres ---------------------------------------------------------------------
@@ -266,6 +267,11 @@ export function SettingsPage() {
         <section>
           <h2 className="mb-2 text-sm font-semibold">Hypothèses de gestion</h2>
           <Card><SettingsForm /></Card>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-sm font-semibold">Sauvegarde et exports</h2>
+          <BackupCard />
         </section>
       </div>
       <RuleModal rule={target ? current(target.role, target.offer) : undefined} target={target} onClose={() => setTarget(null)} />

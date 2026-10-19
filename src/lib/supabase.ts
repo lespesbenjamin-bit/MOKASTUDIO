@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
+import { DEMO_WRITE_MESSAGE, currentDemoRole, demoFetch, demoSession } from '@/demo/server';
 
 /**
  * Garde uniquement « https://xxxx.supabase.co » : tolère un espace, un « / »
@@ -21,12 +22,47 @@ const anonKey = (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)?.
 /** false si les variables d'environnement ne sont pas renseignées. */
 export const isSupabaseConfigured = Boolean(url && anonKey && /^https:\/\//.test(url));
 
+// --- Mode démonstration --------------------------------------------------------
+// Activé en ouvrant /demo ; reste actif dans l'onglet jusqu'à « Quitter la démo ».
+// Le client ne parle alors qu'au faux serveur en mémoire (src/demo) : aucune
+// requête vers Supabase, aucune donnée réelle affichée ou modifiée.
+const DEMO_FLAG = 'moka-demo';
+export const isDemo: boolean = (() => {
+  if (typeof window === 'undefined') return false;
+  try {
+    if (window.location.pathname === '/demo') sessionStorage.setItem(DEMO_FLAG, '1');
+    return sessionStorage.getItem(DEMO_FLAG) === '1';
+  } catch {
+    return false;
+  }
+})();
+
+export function exitDemo() {
+  try { sessionStorage.removeItem(DEMO_FLAG); } catch { /* ignore */ }
+  window.location.href = '/connexion';
+}
+
+function demoStorage() {
+  const key = 'sb-demo-auth-token';
+  const mem = new Map<string, string>([[key, JSON.stringify(demoSession(currentDemoRole()))]]);
+  return {
+    getItem: (k: string) => mem.get(k) ?? null,
+    setItem: (k: string, v: string) => void mem.set(k, v),
+    removeItem: (k: string) => void mem.delete(k),
+  };
+}
+
 // Seule la clé ANON (publique) est utilisée côté navigateur.
-export const supabase = createClient<Database>(
-  url ?? 'https://not-configured.invalid',
-  anonKey ?? 'not-configured',
-  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } },
-);
+export const supabase = isDemo
+  ? createClient<Database>('https://demo.invalid', 'demo', {
+      auth: { persistSession: true, autoRefreshToken: false, detectSessionInUrl: false, storage: demoStorage(), storageKey: 'sb-demo-auth-token' },
+      global: { fetch: demoFetch },
+    })
+  : createClient<Database>(
+      url ?? 'https://not-configured.invalid',
+      anonKey ?? 'not-configured',
+      { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } },
+    );
 
 /** Traduit les erreurs techniques en messages lisibles. */
 export function humanizeError(error: unknown): string {
@@ -36,6 +72,7 @@ export function humanizeError(error: unknown): string {
     : String(error);
 
   const map: [RegExp, string][] = [
+    [/Mode démonstration/i, DEMO_WRITE_MESSAGE],
     [/Invalid login credentials/i, 'Email ou mot de passe incorrect.'],
     [/Email not confirmed/i, 'Adresse email non confirmée. Utilisez le lien reçu par email.'],
     [/User is banned/i, 'Ce compte est désactivé. Contactez l\'administrateur.'],

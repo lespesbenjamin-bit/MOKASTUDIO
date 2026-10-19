@@ -1,0 +1,30 @@
+# Vérifications automatiques à chaque envoi sur GitHub
+name: Vérifications
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Typage
+        run: npm run typecheck
+      - name: Tests unitaires
+        run: npm test
+      - name: Tests base de données (schéma, permissions, CRM, import, ventes, tableau de bord, contrôle de sécurité)
+        run: npm run db:test
+      - name: Construction
+        run: npm run build
+      - name: Navigateur pour les tests de bout en bout
+        run: npx playwright install --with-deps chromium
+      - name: Tests de bout en bout (mode démonstration)
+        run: npm run test:e2e

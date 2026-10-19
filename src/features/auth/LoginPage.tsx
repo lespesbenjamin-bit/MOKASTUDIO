@@ -87,6 +87,9 @@ export function LoginPage() {
           Mot de passe oublié ?
         </button>
       </form>
+      <p className="mt-8 border-t border-beige pt-4 text-center text-xs text-anthracite-500">
+        Présenter l’outil ? <a href="/demo" className="font-medium text-terracotta-700 hover:underline">Mode démonstration</a> (données fictives)
+      </p>
     </AuthLayout>
   );
 }

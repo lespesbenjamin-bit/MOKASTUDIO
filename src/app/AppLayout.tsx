@@ -4,7 +4,10 @@ import { clsx } from 'clsx';
 import { LogOut, Menu, Search, X } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { BrandMark } from '@/features/auth/AuthLayout';
-import { ROLE_LABELS } from '@/lib/roles';
+import { ROLE_LABELS, ALL_ROLES } from '@/lib/roles';
+import { exitDemo, isDemo } from '@/lib/supabase';
+import { currentDemoRole, setDemoRole } from '@/demo/server';
+import type { UserRole } from '@/types/database';
 import { navFor } from './navigation';
 
 function initials(name: string) {
@@ -86,7 +89,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
             <p className="truncate text-xs text-anthracite-500">{ROLE_LABELS[role]}</p>
           </div>
           <button
-            onClick={() => void signOut()}
+            onClick={() => (isDemo ? exitDemo() : void signOut())}
             className="rounded-md p-1.5 text-anthracite-500 hover:bg-white hover:text-anthracite"
             aria-label="Se déconnecter"
             title="Se déconnecter"
@@ -128,6 +131,28 @@ function GlobalSearch({ className }: { className?: string }) {
   );
 }
 
+/** Bandeau permanent du mode démonstration */
+function DemoBanner() {
+  if (!isDemo) return null;
+  return (
+    <div role="status" className="z-50 flex flex-wrap lg:sticky lg:top-0 lg:h-8 lg:flex-nowrap items-center justify-center gap-x-3 gap-y-1 bg-anthracite px-4 py-2 text-xs text-white">
+      <strong className="uppercase tracking-wider text-terracotta-100">Démonstration — données fictives</strong>
+      <span className="hidden text-white/70 sm:inline">Aucune modification n’est enregistrée.</span>
+      <label className="flex items-center gap-1.5">
+        <span className="text-white/70">Voir en tant que</span>
+        <select
+          value={currentDemoRole()}
+          onChange={(e) => { setDemoRole(e.target.value as UserRole); window.location.href = '/'; }}
+          className="rounded bg-white/10 px-1.5 py-0.5 text-white"
+        >
+          {ALL_ROLES.map((r) => <option key={r} value={r} className="text-anthracite">{ROLE_LABELS[r]}</option>)}
+        </select>
+      </label>
+      <button onClick={exitDemo} className="rounded border border-white/30 px-2 py-0.5 hover:bg-white/10">Quitter la démo</button>
+    </div>
+  );
+}
+
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -135,8 +160,9 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-creme text-anthracite">
+      <DemoBanner />
       {/* Sidebar bureau */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 border-r border-beige-300/70 bg-beige/40 lg:block">
+      <aside className={clsx('fixed bottom-0 left-0 z-30 hidden w-60 border-r border-beige-300/70 bg-beige/40 lg:block', isDemo ? 'top-8' : 'top-0')}>
         <Sidebar />
       </aside>
 

@@ -1,9 +1,6 @@
 # Moka Studio Business Hub — Étape 1 : architecture
 
-> Statut : validé (9 points acceptés le 19/10/2026). Étapes 1 et 2 livrées :
-> 9 migrations, 31 vérifications de contraintes (`npm run db:verify`) et
-> 84 tests de permissions par rôle (`npm run db:test-rls`) passés sur PostgreSQL.
-> Pas encore exécuté sur ton projet Supabase.
+> Statut : V1 livrée (étapes 1 à 6). Voir le README pour l'installation, l'utilisation et les tests.
 
 ---
 
