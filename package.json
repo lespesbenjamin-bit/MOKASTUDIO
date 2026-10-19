@@ -20,9 +20,11 @@
     "db:test-dashboard": "node scripts/test-dashboard.mjs",
     "test:e2e": "node scripts/e2e-demo.mjs",
     "db:test-controle": "node scripts/test-controle.mjs",
-    "test:all": "npm run -s typecheck && npm test && npm run -s db:test && npm run -s build && npm run -s test:e2e",
+    "test:all": "npm run -s typecheck && npm test && npm run -s db:test && npm run -s test:edge && npm run -s build && npm run -s test:e2e && npm run -s test:e2e-portal",
     "db:test-map": "node scripts/test-map.mjs",
-    "db:test-projects": "node scripts/test-projects.mjs"
+    "db:test-projects": "node scripts/test-projects.mjs",
+    "test:edge": "node scripts/run-edge-test.mjs",
+    "test:e2e-portal": "node scripts/e2e-portal.mjs"
   },
   "private": true,
   "type": "module",

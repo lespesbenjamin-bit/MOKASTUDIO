@@ -138,6 +138,12 @@ await ok('dépôt : chemin rangé dans le dossier du projet, nom nettoyé', asyn
 });
 await ok('fichier non confirmé invisible pour le client', async () =>
   eq((await one(ANON, `select portal_open($1) r`, [TOKEN])).r.files.length, 0));
+await ok('appartenance du document : bon lien / équipe du projet oui, autres non', async () => {
+  eq((await one(ANON, `select portal_file_owned($1, $2) r`, [TOKEN, FILE])).r, true);
+  eq((await one(U.c1, `select project_file_owned($1) r`, [FILE])).r, true);
+  eq((await one(U.c2, `select project_file_owned($1) r`, [FILE])).r, false);
+});
+await rejects('appartenance : lien inconnu refusé', () => q(ANON, `select portal_file_owned($1, $2)`, ['f'.repeat(64), FILE]));
 await rejects('confirmation réservée au serveur (anonyme)', () => q(ANON, `select project_file_confirm($1, true)`, [FILE]));
 await rejects('confirmation réservée au serveur (commercial)', () => q(U.c1, `select project_file_confirm($1, true)`, [FILE]));
 await ok('confirmation serveur → visible, historique + notifications', async () => {
@@ -222,9 +228,10 @@ await ok('en création → contrat « site en cours »', async () => {
   await q(U.admin, `select set_project_status($1, 'en_creation')`, [P1]);
   eq((await one(U.admin, `select site_status from contracts where id=$1`, [K1])).site_status, 'en_cours');
 });
-await ok('tâches de production : l\'admin les gère, le commercial les voit', async () => {
-  await q(U.admin, `insert into project_tasks (project_id, title, position) values ($1, 'Maquette', 1), ($1, 'Mise en ligne', 2)`, [P1]);
-  eq((await q(U.c1, `select id from project_tasks where project_id=$1`, [P1])).length, 2);
+await ok('tâches de production : 10 tâches standard créées, l\'admin en ajoute, le commercial les voit', async () => {
+  eq((await q(U.c1, `select id from project_tasks where project_id=$1`, [P1])).length, 10);
+  await q(U.admin, `insert into project_tasks (project_id, title, position) values ($1, 'Maquette', 11), ($1, 'Mise en ligne', 12)`, [P1]);
+  eq((await q(U.c1, `select id from project_tasks where project_id=$1`, [P1])).length, 12);
 });
 await ok('commercial : modification d\'une tâche sans effet (RLS)', async () => {
   eq((await q(U.c1, `update project_tasks set title='x' where project_id=$1 returning id`, [P1])).length, 0);

@@ -8,6 +8,7 @@ import { ROLE_LABELS, ALL_ROLES } from '@/lib/roles';
 import { exitDemo, isDemo } from '@/lib/supabase';
 import { currentDemoRole, setDemoRole } from '@/demo/server';
 import type { UserRole } from '@/types/database';
+import { NotificationsBell } from '@/features/projects/NotificationsBell';
 import { navFor } from './navigation';
 
 function initials(name: string) {
@@ -173,6 +174,7 @@ export function AppLayout() {
         </button>
         <BrandMark className="h-7 w-7" />
         <span className="font-display font-semibold">Moka Studio</span>
+        <NotificationsBell className="ml-auto" />
       </header>
 
       {/* Tiroir mobile */}
@@ -196,6 +198,7 @@ export function AppLayout() {
         <div className="hidden border-b border-beige-300/60 bg-creme/80 backdrop-blur lg:block">
           <div className="mx-auto flex h-14 max-w-7xl items-center px-10">
             <GlobalSearch className="w-80" />
+            <NotificationsBell className="ml-auto" />
           </div>
         </div>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-8">

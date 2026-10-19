@@ -12,6 +12,7 @@ import type { ContractOverview, ContractStatus, SiteStatus } from '@/types/datab
 import { Alert, Badge, Button, Card, EmptyState, Field, Input, Modal, Select, Spinner, Textarea } from '@/components/ui';
 import { useCommissions, useContract, useContractAction, usePayments, useUpdateSite } from './api';
 import { PaymentsTable } from './PaymentsTable';
+import { ProjectButton } from '@/features/projects/components';
 
 function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -162,6 +163,7 @@ export function ContractPage() {
           <Link to={`/prospects/${k.lead_id}`} className="text-terracotta-700 hover:underline">Fiche et historique</Link>
           {isAdmin && k.owner_name && <><span aria-hidden>·</span><span>{k.owner_name}</span></>}
         </div>
+        {(k.status === 'signe' || k.status === 'actif') && <ProjectButton contractId={k.id} className="mt-3" />}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">

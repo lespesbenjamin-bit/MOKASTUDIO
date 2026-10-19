@@ -6,6 +6,7 @@ import { formatEuros, formatBps } from '@/lib/money';
 import { formatDate, todayInput } from '@/lib/sales';
 import type { DashboardKpis, MonthlyPoint } from '@/types/database';
 import { Alert, Card, Input, PageHeader, Segmented, Spinner } from '@/components/ui';
+import { ProjectsToHandle } from '@/features/projects/ProjectsToHandle';
 import { MonthlyBars, MonthlyLine, CHART } from './charts';
 
 type Preset = 'jour' | 'semaine' | 'mois' | 'annee' | 'perso';
@@ -87,6 +88,7 @@ export function DashboardPage() {
         title="Tableau de bord"
         description={`Du ${formatDate(period.from)} au ${formatDate(period.to)}`}
       />
+      <ProjectsToHandle limit={4} />
 
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-center">
         <div className="overflow-x-auto">

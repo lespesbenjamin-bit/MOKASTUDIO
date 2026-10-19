@@ -200,6 +200,55 @@ function SettingsForm() {
   );
 }
 
+// --- Projets clients ---------------------------------------------------------------
+function ProjectSettingsForm() {
+  const settings = useAppSettings();
+  const update = useUpdateSettings();
+  const [v, setV] = useState({ delivery: '10', link: '60', privacy: '', email: '' });
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    const s = settings.data;
+    if (s) setV({ delivery: String(s.project_delivery_days ?? 10), link: String(s.project_link_days ?? 60), privacy: s.privacy_policy_url ?? '', email: s.contact_email ?? '' });
+  }, [settings.data]);
+  if (settings.isPending) return <Spinner />;
+  if (settings.isError) return <div className="p-4"><Alert>{humanizeError(settings.error)}</Alert></div>;
+
+  const save = () => {
+    setError(null); setSaved(false);
+    const delivery = Number(v.delivery), link = Number(v.link);
+    const privacy = v.privacy.trim(), email = v.email.trim();
+    if (!Number.isInteger(delivery) || delivery < 1 || delivery > 120) return setError('Délai de livraison : entre 1 et 120 jours.');
+    if (!Number.isInteger(link) || link < 1 || link > 365) return setError('Validité du lien : entre 1 et 365 jours.');
+    if (privacy && !/^https?:\/\/\S+\.\S+/i.test(privacy)) return setError('Adresse de la politique de confidentialité invalide (https://…).');
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return setError('Email de contact invalide.');
+    update.mutate(
+      { project_delivery_days: delivery, project_link_days: link, privacy_policy_url: privacy || null, contact_email: email || null },
+      { onSuccess: () => setSaved(true), onError: (e) => setError(humanizeError(e)) },
+    );
+  };
+
+  return (
+    <div className="space-y-4 p-4">
+      <div className="grid gap-3 sm:grid-cols-2">
+        <Field label="Livraison prévue (jours après validation du périmètre)" hint="Délai annoncé : 7 à 10 jours.">
+          {(id) => <Input id={id} inputMode="numeric" value={v.delivery} onChange={(e) => setV({ ...v, delivery: e.target.value })} />}
+        </Field>
+        <Field label="Validité du lien client (jours)">{(id) => <Input id={id} inputMode="numeric" value={v.link} onChange={(e) => setV({ ...v, link: e.target.value })} />}</Field>
+        <Field label="Email de contact affiché aux clients" hint="Pied de page du questionnaire et exercice des droits RGPD.">
+          {(id) => <Input id={id} type="email" value={v.email} onChange={(e) => setV({ ...v, email: e.target.value })} placeholder="contact@mokastudio.fr" />}
+        </Field>
+        <Field label="Politique de confidentialité (lien, facultatif)" hint="Sinon, le texte intégré au questionnaire est affiché.">
+          {(id) => <Input id={id} value={v.privacy} onChange={(e) => setV({ ...v, privacy: e.target.value })} placeholder="https://…" />}
+        </Field>
+      </div>
+      {error && <Alert>{error}</Alert>}
+      {saved && <Alert tone="success">Paramètres des projets enregistrés.</Alert>}
+      <div className="flex justify-end"><Button loading={update.isPending} onClick={save}>Enregistrer</Button></div>
+    </div>
+  );
+}
+
 export function SettingsPage() {
   const offers = useOffers();
   const rules = useRules();
@@ -267,6 +316,11 @@ export function SettingsPage() {
         <section>
           <h2 className="mb-2 text-sm font-semibold">Hypothèses de gestion</h2>
           <Card><SettingsForm /></Card>
+        </section>
+
+        <section>
+          <h2 className="mb-2 text-sm font-semibold">Projets clients</h2>
+          <Card><ProjectSettingsForm /></Card>
         </section>
 
         <section>

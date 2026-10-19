@@ -22,6 +22,7 @@ import { FollowUpBadge, LostReasonModal, StatusPill } from './components';
 import { CompanyContactFields, companyContactSchema, type CompanyContactValues } from './LeadForm';
 import { ConvertModal } from '@/features/sales/ConvertModal';
 import { useContractForLead } from '@/features/sales/api';
+import { ProjectButton } from '@/features/projects/components';
 import type { LeadOverview, LeadStatus, TaskOverview, TimelineEntry } from './types';
 
 const nn = (v?: string) => (v && v.trim() ? v.trim() : null);
@@ -358,6 +359,7 @@ export function LeadDetailPage() {
           {l.status === 'perdu' && l.lost_reason && <div className="mt-2"><Badge tone="danger">Motif : {l.lost_reason}</Badge></div>}
         </div>
         <div className="flex flex-wrap gap-2">
+          {existing && l.status === 'gagne' && <ProjectButton contractId={existing.id} label="Créer un projet client" className="[&_button]:h-10" />}
           {existing ? (
             <Link
               to={`/clients/${existing.id}`}

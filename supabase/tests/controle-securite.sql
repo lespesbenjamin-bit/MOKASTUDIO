@@ -16,7 +16,7 @@ declare
   v_com2  uuid := gen_random_uuid();
   v_app   uuid := gen_random_uuid();
   v_off   uuid := gen_random_uuid();
-  v_co1 uuid; v_co2 uuid; v_l1 uuid; v_l2 uuid; v_k uuid; v_cu uuid;
+  v_co1 uuid; v_co2 uuid; v_l1 uuid; v_l2 uuid; v_k uuid; v_cu uuid; v_p uuid; v_tok text; v_txt text;
   n bigint;
   ok integer := 0;
   total integer := 0;
@@ -162,7 +162,51 @@ begin
   exception when others then ok := ok + 1;
   end;
 
-  -- 13. Structure : RLS active partout, rien d'ouvert aux anonymes
+  -- 13. Projets clients : cloisonnement et lien client
+  perform set_config('request.jwt.claims', json_build_object('sub', v_com1, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', v_com1::text, true);
+  execute 'set local role authenticated';
+  execute format('select public.create_client_project(%L)', v_k) into v_p;
+  execute format('select public.create_project_link(%L) ->> %L', v_p, 'token') into v_tok;
+  execute 'reset role';
+
+  total := total + 1;
+  perform set_config('request.jwt.claims', json_build_object('sub', v_com2, 'role', 'authenticated')::text, true);
+  perform set_config('request.jwt.claim.sub', v_com2::text, true);
+  execute 'set local role authenticated';
+  execute 'select count(*) from public.client_projects' into n;
+  execute 'reset role';
+  if n = 0 then ok := ok + 1; else failures := failures || ' | commercial voit le projet d''un collègue'; end if;
+
+  total := total + 1;
+  perform set_config('request.jwt.claims', '{"role":"anon"}', true);
+  perform set_config('request.jwt.claim.sub', '', true);
+  execute 'set local role anon';
+  execute format('select public.portal_open(%L) #>> %L', v_tok, '{project,company_name}') into v_txt;
+  execute 'reset role';
+  if v_txt = 'Test A' then ok := ok + 1; else failures := failures || ' | le lien client n''ouvre pas son projet'; end if;
+
+  total := total + 1;
+  begin
+    execute 'set local role anon';
+    execute format('select public.portal_open(%L)', repeat('0', 64));
+    execute 'reset role';
+    failures := failures || ' | un faux lien client est accepté';
+  exception when others then
+    execute 'reset role'; ok := ok + 1;
+  end;
+
+  total := total + 1;
+  begin
+    execute 'set local role anon';
+    execute 'select count(*) from public.project_questionnaires' into n;
+    execute 'reset role';
+    failures := failures || ' | anonyme lit les questionnaires';
+  exception when others then
+    execute 'reset role'; ok := ok + 1;
+  end;
+
+  -- 14. Structure : RLS active partout, rien d'ouvert aux anonymes
   total := total + 1;
   select count(*) into n from pg_class c join pg_namespace s on s.oid = c.relnamespace
    where s.nspname = 'public' and c.relkind = 'r' and not c.relrowsecurity;
@@ -173,7 +217,7 @@ begin
    where s.nspname = 'public' and c.relkind in ('r', 'v') and has_table_privilege('anon', c.oid, 'select');
   if n = 0 then ok := ok + 1; else failures := failures || ' | ' || n || ' table(s) lisibles par anonyme'; end if;
 
-  -- 14. Fonction d'amorçage admin non appelable depuis l'application
+  -- 15. Fonction d'amorçage admin non appelable depuis l'application
   total := total + 1;
   if not has_function_privilege('authenticated', 'public.bootstrap_first_admin(text, text)', 'execute') then ok := ok + 1;
   else failures := failures || ' | bootstrap_first_admin appelable'; end if;

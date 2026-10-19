@@ -568,6 +568,21 @@ begin
   returning id into v_id;
   insert into public.project_questionnaires (project_id, answers)
   values (v_id, public._prefill_answers(v_k.customer_id));
+  -- Tâches de production standard (modifiables par l'admin)
+  insert into public.project_tasks (project_id, title, position, created_by)
+  select v_id, t.title, t.n, auth.uid()
+    from unnest(array[
+      'Analyser le questionnaire et les documents',
+      'Maquette de la page d''accueil',
+      'Intégration des contenus et photos',
+      'Pages secondaires',
+      'Formulaire de contact et liens (téléphone, réseaux)',
+      'Adaptation mobile et tablette',
+      'SEO de base (titres, descriptions, Google Business)',
+      'Recette : relecture, liens, formulaires',
+      'Présentation au client',
+      'Mise en ligne et nom de domaine'
+    ]) with ordinality as t(title, n);
   perform public._project_event(v_id, 'projet_cree', 'Projet et questionnaire créés (prérempli depuis le CRM)');
   return v_id;
 end;
@@ -954,6 +969,24 @@ begin
 end;
 $$;
 
+-- Le document appartient-il au projet de l'appelant ? (contrôle avant confirmation)
+create or replace function public.portal_file_owned(p_token text, p_file_id uuid)
+returns boolean
+language plpgsql security definer set search_path = public
+as $$
+begin
+  return exists (select 1 from public.project_files
+                  where id = p_file_id and project_id = public._project_from_token(p_token));
+end;
+$$;
+
+create or replace function public.project_file_owned(p_file_id uuid)
+returns boolean
+language sql stable security definer set search_path = public
+as $$
+  select exists (select 1 from public.project_files f where f.id = p_file_id and public.can_access_project(f.project_id));
+$$;
+
 -- Appelée par la fonction serveur après contrôle du contenu réel du fichier.
 create or replace function public.project_file_confirm(p_file_id uuid, p_ok boolean)
 returns text
@@ -1010,7 +1043,8 @@ begin
     'public.flag_missing_info(uuid, text)', 'public.set_project_status(uuid, public.project_status, text, text)',
     'public.update_project(uuid, jsonb)', 'public.save_project_brief(uuid, text)',
     'public.validate_project_brief(uuid)', 'public.project_file_begin(uuid, text, text, text, bigint)',
-    'public.project_file_delete(uuid)', 'public.mark_notifications_read(uuid[])', 'public.can_access_project(uuid)'
+    'public.project_file_delete(uuid)', 'public.mark_notifications_read(uuid[])', 'public.can_access_project(uuid)',
+    'public.project_file_owned(uuid)'
   ] loop
     execute format('revoke execute on function %s from public, anon', f);
     execute format('grant execute on function %s to authenticated', f);
@@ -1019,7 +1053,7 @@ begin
   foreach f in array array[
     'public.portal_open(text)', 'public.portal_save(text, jsonb, integer, integer)',
     'public.portal_submit(text, boolean)', 'public.portal_file_begin(text, text, text, text, bigint)',
-    'public.portal_file_delete(text, uuid)'
+    'public.portal_file_delete(text, uuid)', 'public.portal_file_owned(text, uuid)'
   ] loop
     execute format('revoke execute on function %s from public', f);
     execute format('grant execute on function %s to anon, authenticated', f);

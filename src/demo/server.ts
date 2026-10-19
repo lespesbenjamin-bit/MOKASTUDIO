@@ -7,6 +7,11 @@ import {
   DEMO_RULES, DEMO_SCENARIOS, DEMO_SETTINGS, DEMO_TASKS, DEMO_TIMELINE, DEMO_USERS, demoKpis,
 } from './data';
 
+import {
+  DEMO_PROJECTS, DEMO_PROJECT_BRIEFS, DEMO_PROJECT_EVENTS, DEMO_PROJECT_FILES, DEMO_PROJECT_TASKS, DEMO_PROJECT_TOKENS,
+  DEMO_QUESTIONNAIRES, demoNotifications, demoPortal,
+} from './projects';
+
 export const DEMO_WRITE_MESSAGE = 'Mode démonstration : aucune modification n’est enregistrée.';
 
 type Row = Record<string, unknown>;
@@ -37,7 +42,18 @@ function tables(role: UserRole, uid: string): Record<string, Row[]> {
   const mine = <T extends Row>(rows: T[], key: string) => (role === 'admin' ? rows : rows.filter((r) => r[key] === uid));
   const contracts = role === 'admin' ? DEMO_CONTRACTS : role === 'commercial' ? DEMO_CONTRACTS.filter((k) => k.owner_id === uid) : [];
   const contractIds = new Set(contracts.map((k) => k.id));
+  const projects = role === 'apporteur' ? [] : mine(DEMO_PROJECTS, 'owner_id');
+  const pids = new Set(projects.map((p) => p.id));
+  const ofProjects = <T extends { project_id: string }>(rows: T[]) => rows.filter((r) => pids.has(r.project_id));
   return {
+    project_overview: projects,
+    project_questionnaires: ofProjects(DEMO_QUESTIONNAIRES),
+    project_files: ofProjects(DEMO_PROJECT_FILES),
+    project_tasks: ofProjects(DEMO_PROJECT_TASKS),
+    project_events: ofProjects(DEMO_PROJECT_EVENTS),
+    project_briefs: ofProjects(DEMO_PROJECT_BRIEFS),
+    project_access_tokens: ofProjects(DEMO_PROJECT_TOKENS),
+    notifications: role === 'apporteur' ? [] : demoNotifications(uid).filter((n) => pids.has(n.project_id!)),
     profiles: role === 'admin' ? DEMO_PROFILES : DEMO_PROFILES.filter((p) => p.id === uid),
     lead_overview: role === 'apporteur' ? [] : mine(DEMO_LEADS, 'owner_id'),
     task_overview: role === 'apporteur' ? [] : mine(DEMO_TASKS, 'assignee_id'),
@@ -71,6 +87,9 @@ function rpc(name: string, body: Row, role: UserRole, uid: string): Response {
         paid_at: c.paid_at, company_name: c.company_name, signed_at: c.signed_at, trigger_kind: c.trigger_kind, required_payments: c.required_payments,
       })));
     case 'dashboard_kpis': return role === 'admin' ? json(demoKpis()) : json({ message: 'Réservé aux administrateurs' }, 403);
+    case 'portal_open':
+      return body.p_token === 'demo' ? json(demoPortal()) : json({ code: '28000', message: 'Ce lien n’est pas valide ou a expiré.' }, 403);
+    case 'can_access_project': return json(role !== 'apporteur');
     case 'dashboard_monthly': return json(role === 'admin' ? DEMO_MONTHLY : []);
     default:
       void body;

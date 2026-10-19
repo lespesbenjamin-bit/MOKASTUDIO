@@ -29,12 +29,13 @@ const PAGES = {
     ['/', /Bonjour|Bonsoir/], ['/tableau-de-bord', /Tableau de bord/], ['/prospects', /Prospects/], ['/prospects/l05', /Fleuriste Pétales/],
     ['/relances', /relances/i], ['/clients', /Clients & contrats/], ['/clients/k1', /Pizzeria Bella/], ['/paiements', /Paiements/],
     ['/commissions', /Commissions/], ['/finances', /prévisionnel/], ['/parametres', /Paramètres/], ['/parametres/utilisateurs', /Utilisateurs/],
-    ['/mon-profil', /Mon profil/], ['/carte', /Carte/],
+    ['/mon-profil', /Mon profil/], ['/carte', /Carte/], ['/projets', /Projets clients/], ['/projets/pj2', /Traiteur Saveurs/],
+    ['/projets/pj2?onglet=brief', /Traiteur Saveurs/], ['/projets/pj4?onglet=production', /Atelier Couture/],
   ],
-  commercial: [['/', /Bonjour|Bonsoir/], ['/prospects', /Prospects/], ['/carte', /Carte/], ['/relances', /Mes relances/], ['/clients', /Clients/], ['/commissions', /Mes commissions/]],
+  commercial: [['/', /Bonjour|Bonsoir/], ['/prospects', /Prospects/], ['/carte', /Carte/], ['/projets', /Projets clients/], ['/projets/pj1', /Pizzeria Bella/], ['/relances', /Mes relances/], ['/clients', /Clients/], ['/commissions', /Mes commissions/]],
   apporteur: [['/', /Bonjour|Bonsoir/], ['/apports', /prospects transmis/], ['/commissions', /Mes commissions/]],
 };
-const FORBIDDEN = { commercial: ['/parametres', '/tableau-de-bord', '/paiements'], apporteur: ['/prospects', '/clients', '/parametres', '/carte'] };
+const FORBIDDEN = { commercial: ['/parametres', '/tableau-de-bord', '/paiements'], apporteur: ['/prospects', '/clients', '/parametres', '/carte', '/projets'] };
 
 try {
   await waitForServer();
@@ -111,6 +112,58 @@ try {
     if (!href?.startsWith('https://www.google.com/maps/dir/?api=1') || !href.includes('waypoints=')) throw new Error(`lien inattendu : ${href}`);
   });
   await check('carte sans erreur JavaScript', async () => { if (mapErrors.length) throw new Error(mapErrors.join(' | ')); });
+
+  console.log('\nProjets clients');
+  await check('commercial : le projet d’un collègue reste invisible', async () => {
+    await page.evaluate(() => sessionStorage.setItem('moka-demo-role', 'commercial'));
+    await page.goto(`${BASE}/projets/pj2`);
+    await page.getByText('Projet introuvable').waitFor({ timeout: 5000 });
+    await page.evaluate(() => sessionStorage.setItem('moka-demo-role', 'admin'));
+  });
+  await check('brief : 13 sections, bouton « Copier le prompt » et export Markdown', async () => {
+    await page.goto(`${BASE}/projets/pj2?onglet=brief`);
+    await page.getByText('## 13. Informations manquantes').waitFor({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Copier le prompt' }).waitFor();
+    const dl = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Markdown' }).click();
+    const name = (await dl).suggestedFilename();
+    if (!/^brief-traiteur-saveurs-fictif-v1\.md$/.test(name)) throw new Error(`fichier : ${name}`);
+  });
+  await check('fiche contrat : accès au projet existant', async () => {
+    await page.goto(`${BASE}/clients/k1`);
+    await page.getByRole('link', { name: /Projet : En attente/ }).click();
+    await page.getByRole('heading', { level: 1, name: /Pizzeria Bella/ }).waitFor({ timeout: 5000 });
+  });
+  await check('cloche : notifications des projets', async () => {
+    await page.goto(`${BASE}/`);
+    await page.getByRole('button', { name: /Notifications, \d+ non lues/ }).first().click();
+    await page.getByText(/Brief généré — Traiteur Saveurs/).waitFor({ timeout: 3000 });
+  });
+  await check('portail client : accueil, 6 étapes, récapitulatif, bouton d’envoi', async () => {
+    await page.goto(`${BASE}/projet/demo`);
+    await page.getByRole('heading', { name: /Créons ensemble un site qui vous/ }).waitFor({ timeout: 5000 });
+    await page.getByRole('button', { name: 'Commencer' }).click();
+    await page.getByLabel('Nom commercial').waitFor();
+    if ((await page.getByLabel('Nom commercial').inputValue()) !== 'Pizzeria Bella (fictif)') throw new Error('préremplissage absent');
+    for (let i = 0; i < 4; i++) await page.getByRole('button', { name: 'Suivant' }).click();
+    await page.getByRole('button', { name: 'Vérifier' }).click();
+    await page.getByRole('heading', { name: 'Récapitulatif' }).waitFor();
+    const send = page.getByRole('button', { name: 'Transmettre mon projet à Moka Studio' });
+    if (await send.isEnabled()) throw new Error('envoi possible sans la case de confirmation');
+    await page.getByText(/Je confirme que les informations transmises sont exactes/).click();
+    if (!(await send.isEnabled())) throw new Error('bouton toujours désactivé');
+  });
+  await check('portail client : conditionnel « option planning » si réservation sans logiciel', async () => {
+    await page.getByRole('button', { name: /Fonctions/ }).click();
+    await page.getByRole('button', { name: 'Réservation en ligne' }).click();
+    await page.getByRole('radio', { name: 'Non' }).click();
+    await page.getByText('Option planning Moka Studio').waitFor({ timeout: 3000 });
+    await page.getByText(/20,00\s€ par mois/).waitFor();
+  });
+  await check('portail client : un faux lien est refusé', async () => {
+    await page.goto(`${BASE}/projet/${'a'.repeat(64)}`);
+    await page.getByRole('heading', { name: 'Lien indisponible' }).waitFor({ timeout: 5000 });
+  });
 
   await check('quitter la démo ramène à la connexion', async () => {
     await page.goto(`${BASE}/`);

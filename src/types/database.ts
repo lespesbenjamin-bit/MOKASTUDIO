@@ -90,6 +90,7 @@ export type OfferRow = {
 export type AppSettingsRow = {
   id: boolean; variable_cost_per_sub_cents: number; fixed_costs_monthly_cents: number;
   contributions_provision_bps: number; creation_hour_cost_cents: number; stale_lead_days: number; updated_by: string | null;
+  project_delivery_days: number; project_link_days: number; privacy_policy_url: string | null; contact_email: string | null;
 } & Timestamps;
 
 export type CommissionRuleRow = {
@@ -198,6 +199,86 @@ export type MonthlyPoint = {
   month: string; cash_in_cents: number; mrr_cents: number; contracts_signed: number; active_subscriptions: number;
 };
 
+
+// --- Projets clients ------------------------------------------------------------
+export type ProjectStatus =
+  | 'en_attente_infos' | 'questionnaire_recu' | 'brief_a_valider' | 'pret_a_produire'
+  | 'en_creation' | 'en_validation_client' | 'pret_a_publier' | 'livre' | 'annule';
+export type QuestionnaireStatus = 'non_commence' | 'en_cours' | 'recu';
+export type ProjectAnswers = Record<string, string | string[] | boolean | number | null>;
+
+export type ClientProjectRow = {
+  id: string; customer_id: string; contract_id: string | null; title: string; status: ProjectStatus;
+  assignee_id: string | null; target_date: string | null; scope_validated_at: string | null; delivered_at: string | null;
+  site_url: string | null; next_action: string | null; cancel_reason: string | null; status_changed_at: string;
+  last_activity_at: string; created_by: string | null;
+} & Timestamps;
+
+export type ProjectOverview = {
+  id: string; customer_id: string; contract_id: string | null; title: string; status: ProjectStatus;
+  assignee_id: string | null; target_date: string | null; scope_validated_at: string | null; delivered_at: string | null;
+  site_url: string | null; next_action: string | null; cancel_reason: string | null; status_changed_at: string;
+  last_activity_at: string; created_by: string | null; created_at: string;
+  company_name: string; sector: string | null; city: string | null; owner_id: string | null; owner_name: string | null;
+  assignee_name: string | null; contract_reference: string | null; offer_code: OfferCode | null; with_planning_option: boolean | null;
+  questionnaire_status: QuestionnaireStatus | null; completion_pct: number | null; submitted_at: string | null;
+  last_saved_at: string | null; files_count: number; open_tasks: number; link_active: boolean; is_late: boolean;
+};
+
+export type ProjectQuestionnaireRow = {
+  project_id: string; status: QuestionnaireStatus; answers: ProjectAnswers; current_step: number; completion_pct: number;
+  started_at: string | null; submitted_at: string | null; submitted_via: 'client' | 'equipe' | null; submitted_by: string | null;
+  consent_at: string | null; last_saved_via: 'client' | 'equipe' | null; last_saved_at: string | null; updated_at: string;
+};
+
+export type ProjectFileRow = {
+  id: string; project_id: string; category: string; storage_path: string; original_name: string; mime_type: string;
+  size_bytes: number; status: 'en_attente' | 'valide'; uploaded_via: 'client' | 'equipe'; uploaded_by: string | null;
+  created_at: string; confirmed_at: string | null;
+};
+
+export type ProjectTaskRow = {
+  id: string; project_id: string; title: string; status: 'a_faire' | 'en_cours' | 'fait'; assignee_id: string | null;
+  due_on: string | null; position: number; done_at: string | null; created_by: string | null;
+} & Timestamps;
+
+export type ProjectEventKind =
+  | 'projet_cree' | 'lien_cree' | 'lien_revoque' | 'questionnaire_commence' | 'questionnaire_recu' | 'documents_ajoutes'
+  | 'document_supprime' | 'infos_manquantes' | 'brief_genere' | 'brief_valide' | 'statut' | 'commentaire' | 'modification';
+export type ProjectEventRow = {
+  id: string; project_id: string; kind: ProjectEventKind; body: string | null; from_value: string | null;
+  to_value: string | null; actor_id: string | null; created_at: string;
+};
+
+export type ProjectBriefRow = {
+  id: string; project_id: string; version: number; content: string; generated_by: string | null; created_at: string;
+  validated_at: string | null; validated_by: string | null;
+};
+
+export type ProjectTokenRow = {
+  id: string; project_id: string; created_by: string | null; created_at: string; expires_at: string;
+  revoked_at: string | null; revoked_by: string | null; last_used_at: string | null; use_count: number;
+};
+
+export type NotificationRow = {
+  id: string; user_id: string; project_id: string | null; kind: string; title: string; body: string | null;
+  link: string | null; created_at: string; read_at: string | null; email_status: 'non_envoye' | 'a_envoyer' | 'envoye' | 'echec';
+};
+
+export type PortalFile = { id: string; category: string; name: string; size: number; mime: string; via?: 'client' | 'equipe'; created_at: string };
+export type PortalData = {
+  project: { title: string; company_name: string; status: ProjectStatus };
+  questionnaire: {
+    status: QuestionnaireStatus; answers: ProjectAnswers; current_step: number; completion_pct: number;
+    submitted_at: string | null; last_saved_at: string | null;
+  };
+  files: PortalFile[];
+  missing_message: string | null;
+  planning_monthly_cents: number | null;
+  privacy_policy_url: string | null;
+  contact_email: string | null;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -212,6 +293,14 @@ export type Database = {
       commission_rules: Table<CommissionRuleRow, 'beneficiary_role' | 'offer_code' | 'amount_cents' | 'tranche1_bps'>;
       contracts: Table<ContractRow, 'reference' | 'customer_id' | 'offer_code' | 'signed_at'>;
       financial_scenarios: Table<ScenarioRow, 'name' | 'kind' | 'start_month' | 'assumptions'>;
+      client_projects: Table<ClientProjectRow, 'customer_id' | 'title'>;
+      project_questionnaires: Table<ProjectQuestionnaireRow, 'project_id'>;
+      project_files: Table<ProjectFileRow, 'project_id' | 'category' | 'storage_path' | 'original_name' | 'mime_type' | 'size_bytes' | 'uploaded_via'>;
+      project_tasks: Table<ProjectTaskRow, 'project_id' | 'title'>;
+      project_events: Table<ProjectEventRow, 'project_id' | 'kind'>;
+      project_briefs: Table<ProjectBriefRow, 'project_id' | 'version' | 'content'>;
+      project_access_tokens: Table<ProjectTokenRow, 'project_id' | 'expires_at'>;
+      notifications: Table<NotificationRow, 'user_id' | 'kind' | 'title'>;
     };
     Views: {
       lead_overview: { Row: LeadOverview; Relationships: [] };
@@ -220,6 +309,7 @@ export type Database = {
       payment_overview: { Row: PaymentOverview; Relationships: [] };
       commission_overview: { Row: CommissionOverview; Relationships: [] };
       map_points: { Row: MapPoint; Relationships: [] };
+      project_overview: { Row: ProjectOverview; Relationships: [] };
     };
     Functions: {
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
@@ -289,6 +379,21 @@ export type Database = {
         };
         Returns: ImportReport;
       };
+      create_client_project: { Args: { p_contract_id: string; p_title?: string | null }; Returns: string };
+      project_save_answers: { Args: { p_project_id: string; p_patch: ProjectAnswers; p_step?: number | null; p_completion?: number | null }; Returns: string };
+      project_submit_questionnaire: { Args: { p_project_id: string; p_consent: boolean }; Returns: undefined };
+      create_project_link: { Args: { p_project_id: string }; Returns: { token: string; expires_at: string } };
+      revoke_project_links: { Args: { p_project_id: string }; Returns: number };
+      add_project_comment: { Args: { p_project_id: string; p_body: string }; Returns: undefined };
+      flag_missing_info: { Args: { p_project_id: string; p_message: string }; Returns: undefined };
+      set_project_status: { Args: { p_project_id: string; p_status: ProjectStatus; p_note?: string | null; p_site_url?: string | null }; Returns: undefined };
+      update_project: { Args: { p_project_id: string; p_patch: Record<string, string | null> }; Returns: undefined };
+      save_project_brief: { Args: { p_project_id: string; p_content: string }; Returns: string };
+      validate_project_brief: { Args: { p_brief_id: string }; Returns: undefined };
+      mark_notifications_read: { Args: { p_ids?: string[] | null }; Returns: number };
+      portal_open: { Args: { p_token: string }; Returns: PortalData };
+      portal_save: { Args: { p_token: string; p_patch: ProjectAnswers; p_step?: number | null; p_completion?: number | null }; Returns: string };
+      portal_submit: { Args: { p_token: string; p_consent: boolean }; Returns: undefined };
     };
     Enums: {
       user_role: UserRole; lead_status: LeadStatus; lead_source: LeadSource; activity_kind: ActivityKind;

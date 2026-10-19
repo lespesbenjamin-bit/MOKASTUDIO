@@ -21,6 +21,9 @@ import { SettingsPage } from '@/features/settings/SettingsPage';
 // Pages avec graphiques chargées à la demande (bibliothèque de graphiques volumineuse)
 const DashboardPage = lazy(() => import('@/features/finance/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const ForecastPage = lazy(() => import('@/features/finance/ForecastPage').then((m) => ({ default: m.ForecastPage })));
+const PortalPage = lazy(() => import('@/features/projects/PortalPage').then((m) => ({ default: m.PortalPage })));
+const ProjectsPage = lazy(() => import('@/features/projects/ProjectsPage').then((m) => ({ default: m.ProjectsPage })));
+const ProjectDetailPage = lazy(() => import('@/features/projects/ProjectDetailPage').then((m) => ({ default: m.ProjectDetailPage })));
 const MapPage = lazy(() => import('@/features/map/MapPage').then((m) => ({ default: m.MapPage })));
 import { Alert, Spinner } from '@/components/ui';
 import { AppLayout } from './app/AppLayout';
@@ -57,6 +60,7 @@ export function App() {
             <Route path="/demo" element={<Navigate to="/" replace />} />
             <Route path="/connexion" element={<LoginPage />} />
             <Route path="/definir-mot-de-passe" element={<SetPasswordPage />} />
+            <Route path="/projet/:token" element={<Suspense fallback={<Spinner />}><PortalPage /></Suspense>} />
             <Route element={<RequireAuth />}>
               <Route element={<AppLayout />}>
                 <Route index element={<HomePage />} />
@@ -69,6 +73,8 @@ export function App() {
                 <Route path="prospects/:id" element={<RequireRole roles={['admin', 'commercial']}><LeadDetailPage /></RequireRole>} />
                 <Route path="relances" element={<RequireRole roles={['admin', 'commercial']}><TasksPage /></RequireRole>} />
                 <Route path="apports" element={<RequireRole roles={['apporteur']}><ReferralsPage /></RequireRole>} />
+                <Route path="projets" element={<RequireRole roles={['admin', 'commercial']}><Suspense fallback={<Spinner />}><ProjectsPage /></Suspense></RequireRole>} />
+                <Route path="projets/:id" element={<RequireRole roles={['admin', 'commercial']}><Suspense fallback={<Spinner />}><ProjectDetailPage /></Suspense></RequireRole>} />
                 <Route path="carte" element={<RequireRole roles={['admin', 'commercial']}><Suspense fallback={<Spinner />}><MapPage /></Suspense></RequireRole>} />
                 <Route path="clients" element={<RequireRole roles={['admin', 'commercial']}><CustomersPage /></RequireRole>} />
                 <Route path="clients/:id" element={<RequireRole roles={['admin', 'commercial']}><ContractPage /></RequireRole>} />

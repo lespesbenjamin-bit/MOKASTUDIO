@@ -20,11 +20,18 @@ jobs:
         run: npm run typecheck
       - name: Tests unitaires
         run: npm test
-      - name: Tests base de données (schéma, permissions, CRM, import, ventes, tableau de bord, contrôle de sécurité)
+      - name: Tests base de données (schéma, permissions, CRM, import, ventes, tableau de bord, carte, projets, contrôle de sécurité)
         run: npm run db:test
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Fonctions serveur (Edge Functions)
+        run: npm run test:edge
       - name: Construction
         run: npm run build
       - name: Navigateur pour les tests de bout en bout
         run: npx playwright install --with-deps chromium
       - name: Tests de bout en bout (mode démonstration)
         run: npm run test:e2e
+      - name: Portail client avec la vraie base (sauvegarde, reprise, envoi, révocation)
+        run: npm run test:e2e-portal

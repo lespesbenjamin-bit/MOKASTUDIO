@@ -85,6 +85,7 @@ export function humanizeError(error: unknown): string {
     [/companies_siren_uidx/i, 'Une entreprise avec ce SIREN existe déjà.'],
     [/leads_one_open_per_company/i, 'Cette entreprise a déjà un prospect en cours.'],
     [/payments_one_per_period/i, 'Une mensualité existe déjà pour ce mois.'],
+    [/client_projects_contract_uidx/i, 'Un projet existe déjà pour ce contrat.'],
     [/violates check constraint/i, 'Certaines valeurs ne sont pas valides.'],
   ];
   for (const [re, msg] of map) if (re.test(raw)) return msg;
@@ -93,18 +94,20 @@ export function humanizeError(error: unknown): string {
 
 /** Appelle l'Edge Function d'administration des comptes. */
 export async function callAdminUsers<T = unknown>(body: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke<T>('admin-users', { body });
+  return callFunction<T>('admin-users', body);
+}
+
+/** Appelle une Edge Function et remonte son message d'erreur métier. */
+export async function callFunction<T = unknown>(name: string, body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke<T>(name, { body });
   if (error) {
     // Le message métier est dans le corps de la réponse d'erreur
     const ctx = (error as { context?: Response }).context;
+    let message: string | undefined;
     if (ctx && typeof ctx.json === 'function') {
-      try {
-        const payload = (await ctx.json()) as { error?: string };
-        if (payload?.error) throw new Error(payload.error);
-      } catch (e) {
-        if (e instanceof Error && e.message) throw e;
-      }
+      try { message = ((await ctx.json()) as { error?: string; message?: string })?.error; } catch { /* corps non JSON */ }
     }
+    if (message) throw new Error(humanizeError(message));
     throw new Error(humanizeError(error));
   }
   return data as T;

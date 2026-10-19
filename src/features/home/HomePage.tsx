@@ -4,6 +4,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { navFor } from '@/app/navigation';
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/roles';
 import { Badge, Card, PageHeader } from '@/components/ui';
+import { ProjectsToHandle } from '@/features/projects/ProjectsToHandle';
 
 export function HomePage() {
   const { profile, role } = useAuth();
@@ -26,6 +27,8 @@ export function HomePage() {
           <span className="text-sm text-anthracite-500">{ROLE_DESCRIPTIONS[role]}</span>
         </div>
       </Card>
+
+      {(role === 'admin' || role === 'commercial') && <ProjectsToHandle />}
 
       <h2 className="mb-3 text-sm font-medium text-anthracite-500">Vos espaces</h2>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">

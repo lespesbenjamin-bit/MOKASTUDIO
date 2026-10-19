@@ -22,6 +22,7 @@ async function fetchAll(table: string): Promise<Record<string, unknown>[]> {
 const BACKUP_TABLES = [
   'profiles', 'app_settings', 'offers', 'objectives', 'commission_rules', 'companies', 'contacts', 'leads', 'lead_activities',
   'tasks', 'deals', 'customers', 'contracts', 'subscriptions', 'payments', 'commissions', 'expenses', 'financial_scenarios', 'audit_logs',
+  'client_projects', 'project_questionnaires', 'project_files', 'project_tasks', 'project_events', 'project_briefs',
 ];
 
 type Export = { key: string; label: string; view: string; columns: [string, string, ((v: unknown) => string)?][] };

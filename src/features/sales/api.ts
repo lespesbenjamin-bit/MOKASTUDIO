@@ -215,10 +215,11 @@ export function usePublishRule() {
 export function useUpdateSettings() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: {
+    mutationFn: async (patch: Partial<{
       variable_cost_per_sub_cents: number; fixed_costs_monthly_cents: number; contributions_provision_bps: number;
-      creation_hour_cost_cents: number; stale_lead_days: number;
-    }) => {
+      creation_hour_cost_cents: number; stale_lead_days: number; project_delivery_days: number; project_link_days: number;
+      privacy_policy_url: string | null; contact_email: string | null;
+    }>) => {
       unwrap(await supabase.from('app_settings').update(patch).eq('id', true).select('id').single());
     },
     onSuccess: () => {

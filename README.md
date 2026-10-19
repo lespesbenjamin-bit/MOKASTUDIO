@@ -12,6 +12,7 @@ Stack : React · TypeScript · Vite · Tailwind · Supabase (PostgreSQL, Auth, E
 | 5 | Tableau de bord, prévisionnel N / N+1 / N+2 | ✅ |
 | 6 | Mode démonstration, exports et sauvegarde, tests finaux, déploiement | ✅ |
 | + | Carte des prospects et clients, tournées | ✅ |
+| + | Projets clients : questionnaire client, documents, brief Claude, production, livraison | ✅ |
 
 ---
 
@@ -34,10 +35,11 @@ Tout se fait dans le navigateur ; aucun logiciel n'est nécessaire sur votre ord
    | `…001200_sales_commissions.sql` | Contrats, paiements, commissions |
    | `…001300_dashboard.sql` | Tableau de bord |
    | `…001400_map.sql` | Carte (positions GPS des entreprises) |
+   | `…001500_projects.sql` | Projets clients, lien client, documents (crée aussi l'espace de stockage privé) |
 
 3. **Contrôle de sécurité** : exécutez `supabase/tests/controle-securite.sql` dans le SQL Editor.
    Le résultat s'affiche en rouge **volontairement** (c'est ce qui annule les données de test) :
-   le message doit indiquer **« ✅ CONTRÔLE TERMINÉ — 16/16 OK »**.
+   le message doit indiquer **« ✅ CONTRÔLE TERMINÉ — 20/20 OK »**.
 
 ### 1.2 Authentification
 
@@ -56,6 +58,13 @@ Tout se fait dans le navigateur ; aucun logiciel n'est nécessaire sur votre ord
 **Edge Functions → Deploy a new function → Via Editor**, nom `admin-users`, contenu de
 `supabase/functions/admin-users/index.ts`. Puis **Edge Functions → Secrets** :
 `APP_URL` = l'adresse du site, sans `/` final.
+
+### 1.4 bis Fonction serveur `project-files` (documents des projets clients)
+
+**Edge Functions → Deploy a new function → Via Editor**, nom `project-files`, contenu de
+`supabase/functions/project-files/index.ts`. Puis, dans les réglages de la fonction, **désactivez
+« Verify JWT »** : le client qui remplit son questionnaire n'a pas de compte ; la fonction vérifie
+elle-même son lien (ou la session de l'équipe) avant toute opération. Aucun secret à ajouter.
 
 ### 1.5 Site (Vercel)
 
@@ -111,6 +120,17 @@ sont listées (« non localisés ») et peuvent être placées à la main. **Tou
 l'application calcule l'ordre de visite le plus court puis ouvre le trajet dans Google Maps
 (découpé en tronçons sur téléphone, Google y limitant le nombre d'étapes).
 
+**Projets clients** (admin et commerciaux, chacun ses clients) : depuis la fiche d'un contrat signé,
+**« Créer une fiche projet »** (questionnaire prérempli depuis le CRM). Deux façons de le remplir :
+avec le client pendant le rendez-vous (onglet Questionnaire), ou **« Envoyer le questionnaire »** :
+un lien personnel `…/projet/<jeton>` (sans compte, valable 60 jours, révocable, empreinte seule en base),
+avec sauvegarde automatique, reprise, envoi de photos et documents (JPG, PNG, WEBP, PDF, 10 Mo, contenu
+vérifié par le serveur, stockage privé). À réception : génération du **brief de développement pour Claude**
+(modèles par secteur, sans IA payante, aucune information inventée), validation du brief = périmètre
+arrêté → date de livraison à J+10, puis suivi Kanban jusqu'à **Livré** (le contrat passe alors « site en
+ligne », ce qui active l'abonnement). Notifications dans le CRM (cloche) ; **aucun email n'est envoyé**
+automatiquement : les boutons Email / WhatsApp / SMS ouvrent votre propre messagerie.
+
 Règles de gestion clés : montants en centimes ; CA encaissé, CA signé et MRR jamais additionnés ;
 grille de commissions versionnée (aucun recalcul rétroactif) ; commission payée définitive ;
 provision de cotisations = estimation, pas un calcul fiscal ; toutes les opérations sensibles
@@ -130,9 +150,11 @@ npm run dev                  # http://localhost:5173
 
 | Commande | Ce qui est vérifié |
 |---|---|
-| `npm test` | Unitaires : montants, dates, import, moteur prévisionnel, géocodage et tournées (54) |
-| `npm run db:test` | PostgreSQL embarqué : schéma (31), permissions par rôle (84), CRM (40), import (12), ventes & commissions (34), tableau de bord (17), carte (17), script de contrôle Supabase |
-| `npm run test:e2e` | Navigateur réel sur le mode démo : toutes les pages × 3 rôles, accès refusés, écritures bloquées, carte et tournée (40) — après `npm run build` |
+| `npm test` | Unitaires : montants, dates, import, prévisionnel, géocodage, tournées, questionnaire, brief (76) |
+| `npm run db:test` | PostgreSQL embarqué : schéma (31), permissions par rôle (84), CRM (40), import (12), ventes & commissions (34), tableau de bord (17), carte (17), projets clients (84), script de contrôle Supabase |
+| `npm run test:e2e` | Navigateur réel sur le mode démo : toutes les pages × 3 rôles, accès refusés, écritures bloquées, carte, projets, portail (54) — après `npm run build` |
+| `npm run test:e2e-portal` | Portail client dans un vrai navigateur (téléphone) branché sur la vraie base embarquée : préremplissage, sauvegarde automatique, reprise, envoi, révocation (10) |
+| `npm run test:edge` | Fonction `project-files` exécutée avec Deno contre un faux Supabase : droits, URL signées, vrai type des fichiers (13) — nécessite Deno |
 | `npm run test:all` | Tout ce qui précède |
 
 Les tests de base utilisent un PostgreSQL embarqué (PGlite) qui imite Supabase dans sa configuration
@@ -144,11 +166,11 @@ Après création du projet Supabase, les types peuvent être régénérés :
 ### Arborescence
 
 ```
-supabase/migrations/   14 migrations versionnées (schéma, RLS, fonctions)
-supabase/functions/    admin-users (seul code utilisant la clé service_role)
+supabase/migrations/   15 migrations versionnées (schéma, RLS, fonctions)
+supabase/functions/    admin-users, project-files (seuls codes utilisant la clé service_role)
 supabase/tests/        controle-securite.sql (à lancer dans Supabase)
 scripts/               tests base de données et bout en bout
-src/features/          auth, leads, tasks, import, referrer, sales, finance, map, settings
+src/features/          auth, leads, tasks, import, referrer, sales, finance, map, projects, settings
 src/demo/              faux serveur et données fictives du mode démonstration
 docs/ARCHITECTURE.md   architecture, schéma, règles d'accès
 ```
