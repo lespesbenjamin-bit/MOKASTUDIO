@@ -20,6 +20,8 @@ import {
 } from './api';
 import { FollowUpBadge, LostReasonModal, StatusPill } from './components';
 import { CompanyContactFields, companyContactSchema, type CompanyContactValues } from './LeadForm';
+import { ConvertModal } from '@/features/sales/ConvertModal';
+import { useContractForLead } from '@/features/sales/api';
 import type { LeadOverview, LeadStatus, TaskOverview, TimelineEntry } from './types';
 
 const nn = (v?: string) => (v && v.trim() ? v.trim() : null);
@@ -314,6 +316,9 @@ export function LeadDetailPage() {
   const lead = useLead(id);
   const updateStatus = useUpdateLeadStatus();
   const [lostOpen, setLostOpen] = useState(false);
+  const [convertOpen, setConvertOpen] = useState(false);
+  const contract = useContractForLead(id);
+  const existing = contract.data?.[0];
 
   if (lead.isPending) return <Spinner />;
   if (lead.isError) return <Alert>{humanizeError(lead.error)}</Alert>;
@@ -352,7 +357,17 @@ export function LeadDetailPage() {
           </div>
           {l.status === 'perdu' && l.lost_reason && <div className="mt-2"><Badge tone="danger">Motif : {l.lost_reason}</Badge></div>}
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
+          {existing ? (
+            <Link
+              to={`/clients/${existing.id}`}
+              className="inline-flex h-10 items-center gap-2 rounded-lg bg-emerald-700 px-4 text-sm font-medium text-white hover:bg-emerald-800"
+            >
+              Client · {existing.reference}
+            </Link>
+          ) : l.status !== 'perdu' && !contract.isPending ? (
+            <Button onClick={() => setConvertOpen(true)}>Convertir en client</Button>
+          ) : null}
           {l.contact_phone && (
             <a
               href={telHref(l.contact_phone)}
@@ -379,6 +394,7 @@ export function LeadDetailPage() {
         </div>
       </div>
 
+      <ConvertModal open={convertOpen} onClose={() => setConvertOpen(false)} leadId={l.id} companyName={l.company_name} />
       <LostReasonModal
         open={lostOpen}
         companyName={l.company_name}

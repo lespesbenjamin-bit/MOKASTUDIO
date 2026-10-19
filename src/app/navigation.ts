@@ -1,5 +1,5 @@
 import {
-  BarChart3, Briefcase, CalendarCheck, Coins, FileSignature, Home, LineChart, Send, Settings, UserCircle, Users,
+  BarChart3, Briefcase, Wallet, CalendarCheck, Coins, FileSignature, Home, LineChart, Send, Settings, UserCircle, Users,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types/database';
@@ -27,9 +27,10 @@ export const NAV: NavSection[] = [
     items: [
       { to: '/prospects', label: 'Prospects', icon: Briefcase, roles: ['admin', 'commercial'] },
       { to: '/relances', label: 'Mes relances', icon: CalendarCheck, roles: ['admin', 'commercial'] },
-      { to: '/clients', label: 'Clients & contrats', icon: FileSignature, roles: ['admin', 'commercial'], comingInStep: 4 },
+      { to: '/clients', label: 'Clients & contrats', icon: FileSignature, roles: ['admin', 'commercial'] },
+      { to: '/paiements', label: 'Paiements', icon: Wallet, roles: ['admin'] },
       { to: '/apports', label: 'Mes prospects transmis', icon: Send, roles: ['apporteur'] },
-      { to: '/commissions', label: 'Commissions', icon: Coins, roles: ['admin', 'commercial', 'apporteur'], comingInStep: 4 },
+      { to: '/commissions', label: 'Commissions', icon: Coins, roles: ['admin', 'commercial', 'apporteur'] },
     ],
   },
   {
@@ -42,7 +43,7 @@ export const NAV: NavSection[] = [
     title: 'Administration',
     items: [
       { to: '/parametres/utilisateurs', label: 'Utilisateurs', icon: Users, roles: ['admin'] },
-      { to: '/parametres', label: 'Paramètres', icon: Settings, roles: ['admin'], comingInStep: 4 },
+      { to: '/parametres', label: 'Paramètres', icon: Settings, roles: ['admin'] },
     ],
   },
   {

@@ -74,7 +74,12 @@ await rejects('montant négatif', `insert into payments (contract_id, kind, amou
 await rejects('abonnement sans mensualité', `insert into contracts (reference, customer_id, offer_code, signed_at) values ('MOKA-X','30000000-0000-0000-0000-000000000001','abonnement','2026-10-01')`);
 await rejects('site "en ligne" sans URL', `update contracts set site_status='en_ligne' where reference='MOKA-2026-0001'`);
 await rejects('deux mensualités pour le même mois', `insert into payments (contract_id, subscription_id, kind, amount_cents, due_on, period_month) values ('40000000-0000-0000-0000-000000000001','50000000-0000-0000-0000-000000000001','mensualite',2900,'2026-11-01','2026-11-01')`);
-await rejects('paiement encaissé sans date', `update payments set status='encaisse'`);
+await ok('paiement encaissé : date d’encaissement remplie automatiquement', async () => {
+  await db.exec(`update payments set status='encaisse'`);
+  const r = await one(`select paid_at from payments limit 1`);
+  if (!r.paid_at) throw new Error('vide');
+  await db.exec(`update payments set status='en_attente'`);
+});
 
 const ruleId = (await one(`select id from commission_rules where beneficiary_role='commercial' and offer_code='abonnement'`)).id;
 await db.exec(`insert into commissions (contract_id, rule_id, beneficiary_id, beneficiary_role, offer_code, tranche, amount_cents, trigger_kind)

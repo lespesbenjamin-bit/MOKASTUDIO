@@ -13,9 +13,10 @@
     "test": "vitest run",
     "db:verify": "node scripts/verify-schema.mjs",
     "db:test-rls": "node scripts/test-rls.mjs",
-    "db:test": "npm run -s db:verify && npm run -s db:test-rls && npm run -s db:test-crm && npm run -s db:test-import",
+    "db:test": "npm run -s db:verify && npm run -s db:test-rls && npm run -s db:test-crm && npm run -s db:test-import && npm run -s db:test-sales",
     "db:test-crm": "node scripts/test-crm.mjs",
-    "db:test-import": "node scripts/test-import.mjs"
+    "db:test-import": "node scripts/test-import.mjs",
+    "db:test-sales": "node scripts/test-sales.mjs"
   },
   "private": true,
   "type": "module",

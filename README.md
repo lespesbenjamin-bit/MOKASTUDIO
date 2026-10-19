@@ -8,11 +8,27 @@ Stack : React · TypeScript · Vite · Tailwind · Supabase · Vercel.
 | 1 | Architecture, schéma de données | ✅ livrée |
 | 2 | Authentification, profils, permissions (RLS), gestion des utilisateurs | ✅ livrée |
 | 3 | CRM, pipeline Kanban, tâches et relances, espace apporteur | ✅ livrée |
-| 4 | Clients, contrats, moteur de commissions, paramétrage | à venir |
+| 4 | Clients, contrats, moteur de commissions, paramétrage | ✅ livrée |
 | 5 | Tableau de bord, prévisionnel N/N+1/N+2 | à venir |
 | 6 | Tests de bout en bout, exports, mode démo, déploiement final | à venir |
 
 ---
+
+## Mise à jour étape 4
+
+Dans le **SQL Editor** de Supabase, exécute `supabase/migrations/20261019001200_sales_commissions.sql`.
+
+- **Convertir en client** depuis la fiche prospect : abonnement ou vente directe, option planning,
+  dates de signature et d'activation. Les prix du catalogue sont **figés** dans le contrat
+  (l'admin peut appliquer un prix négocié). Le prospect passe « Gagné ».
+- **Clients & contrats** : liste, fiche contrat (dates, engagement, prochaine échéance, statut du site,
+  URL livrée). La mise en ligne du site active automatiquement le contrat.
+- **Paiements** (admin) : génération des mensualités du mois (sans doublon), encaissements, retards.
+- **Commissions** : créées à la signature, acquises automatiquement (tranche 1 au 1er encaissement,
+  tranche 2 à la 3ᵉ mensualité encaissée), facturées / payées par lot avec référence de virement,
+  annulées si le contrat est résilié avant acquisition. Une commission payée est définitive.
+  Export Excel. Chaque commercial / apporteur ne voit que les siennes.
+- **Paramètres** (admin) : tarifs, grille de commissions versionnée, hypothèses de gestion.
 
 ## Import de prospects (admin)
 
@@ -125,7 +141,7 @@ Connecte-toi avec ton compte admin, puis va dans **Utilisateurs → Inviter**.
 ## Tests
 
 ```bash
-npm run db:test      # schéma (31) + permissions (84) + CRM (40) + import (12) sur PostgreSQL embarqué
+npm run db:test      # schéma (31) + permissions (84) + CRM (40) + import (12) + ventes et commissions (34) sur PostgreSQL embarqué
 npm test             # tests unitaires du front
 npm run typecheck
 ```

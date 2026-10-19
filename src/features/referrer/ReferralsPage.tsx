@@ -62,7 +62,7 @@ export function ReferralsPage() {
             </ul>
           )}
           <p className="border-t border-beige px-4 py-3 text-xs text-anthracite-500">
-            Vos commissions seront visibles dans l’espace Commissions dès la signature d’un contrat.
+            Vos commissions apparaissent dans l’espace Commissions dès la signature d’un contrat.
           </p>
         </Card>
 

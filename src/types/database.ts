@@ -16,6 +16,17 @@ export type TaskType = 'appeler' | 'email' | 'sms' | 'relancer' | 'rendez_vous' 
 export type TaskPriority = 'basse' | 'normale' | 'haute' | 'urgente';
 export type TaskStatus = 'a_faire' | 'en_cours' | 'fait' | 'annule';
 
+export type OfferCode = 'abonnement' | 'vente_directe' | 'option_planning';
+export type ContractStatus = 'brouillon' | 'signe' | 'actif' | 'resilie' | 'termine' | 'annule';
+export type SiteStatus = 'a_produire' | 'en_cours' | 'en_validation' | 'en_ligne';
+export type RenewalMode = 'tacite' | 'manuel' | 'aucun';
+export type SubscriptionStatus = 'active' | 'suspendue' | 'resiliee';
+export type PaymentKind = 'mise_en_service' | 'mensualite' | 'vente_directe' | 'autre';
+export type PaymentStatus = 'en_attente' | 'encaisse' | 'echoue' | 'rembourse';
+export type BeneficiaryRole = 'commercial' | 'apporteur';
+export type CommissionStatus = 'previsionnelle' | 'acquise' | 'facturee' | 'payee' | 'annulee';
+export type CommissionTrigger = 'premier_encaissement' | 'n_mensualites';
+
 type Timestamps = { created_at: string; updated_at: string };
 type Table<Row, Required extends keyof Row> = {
   Row: Row;
@@ -57,6 +68,67 @@ export type TaskRow = {
   description: string | null; due_at: string; priority: TaskPriority; status: TaskStatus;
   assignee_id: string; created_by: string | null; completed_at: string | null;
 } & Timestamps;
+
+export type OfferRow = {
+  code: OfferCode; label: string; description: string | null; monthly_price_cents: number; setup_fee_cents: number;
+  one_shot_price_cents: number; commitment_months: number; is_active: boolean; updated_by: string | null;
+} & Timestamps;
+
+export type AppSettingsRow = {
+  id: boolean; variable_cost_per_sub_cents: number; fixed_costs_monthly_cents: number;
+  contributions_provision_bps: number; creation_hour_cost_cents: number; stale_lead_days: number; updated_by: string | null;
+} & Timestamps;
+
+export type CommissionRuleRow = {
+  id: string; beneficiary_role: BeneficiaryRole; offer_code: OfferCode; amount_cents: number;
+  tranche1_bps: number; tranche2_bps: number; tranche2_after_payments: number | null;
+  valid_from: string; valid_to: string | null; created_by: string | null; created_at: string;
+};
+
+export type ContractRow = {
+  id: string; reference: string; customer_id: string; deal_id: string | null; offer_code: OfferCode; status: ContractStatus;
+  monthly_price_cents: number; setup_fee_cents: number; one_shot_price_cents: number;
+  with_planning_option: boolean; planning_monthly_cents: number; offer_snapshot: unknown;
+  signed_at: string; activated_at: string | null; commitment_months: number; commitment_end_at: string | null;
+  renewal: RenewalMode; terminated_at: string | null; termination_reason: string | null;
+  site_status: SiteStatus; site_url: string | null; created_by: string | null;
+} & Timestamps;
+
+export type ContractOverview = {
+  id: string; reference: string; customer_id: string; offer_code: OfferCode; status: ContractStatus;
+  monthly_price_cents: number; setup_fee_cents: number; one_shot_price_cents: number;
+  with_planning_option: boolean; planning_monthly_cents: number;
+  signed_at: string; activated_at: string | null; commitment_months: number; commitment_end_at: string | null;
+  renewal: RenewalMode; terminated_at: string | null; termination_reason: string | null;
+  site_status: SiteStatus; site_url: string | null; created_at: string;
+  company_id: string; lead_id: string; owner_id: string | null; referrer_id: string | null;
+  company_name: string; city: string | null; owner_name: string | null;
+  subscription_id: string | null; subscription_status: SubscriptionStatus | null;
+  monthly_amount_cents: number | null; next_due_on: string | null;
+  paid_cents: number; pending_cents: number; overdue_payments: number;
+};
+
+export type PaymentOverview = {
+  id: string; contract_id: string; subscription_id: string | null; kind: PaymentKind; amount_cents: number;
+  due_on: string; period_month: string | null; status: PaymentStatus; paid_at: string | null;
+  method: string | null; external_ref: string | null; created_at: string;
+  contract_reference: string; customer_id: string; company_name: string;
+};
+
+export type CommissionOverview = {
+  id: string; contract_id: string; rule_id: string; beneficiary_id: string; beneficiary_role: BeneficiaryRole;
+  offer_code: OfferCode; tranche: number; amount_cents: number; trigger_kind: CommissionTrigger;
+  required_payments: number | null; status: CommissionStatus; acquired_at: string | null;
+  invoiced_at: string | null; invoice_ref: string | null; paid_at: string | null; payout_ref: string | null;
+  cancelled_at: string | null; cancel_reason: string | null; created_at: string;
+  beneficiary_name: string | null; contract_reference: string; signed_at: string; customer_id: string; company_name: string;
+};
+
+export type MyCommission = {
+  id: string; offer_code: OfferCode; tranche: number; amount_cents: number; status: CommissionStatus;
+  acquired_at: string | null; paid_at: string | null; company_name: string; signed_at: string;
+  trigger_kind: CommissionTrigger; required_payments: number | null;
+};
 
 export type LeadOverview = Omit<LeadRow, never> & {
   company_name: string; siren: string | null; sector: string | null; address: string | null;
@@ -101,10 +173,17 @@ export type Database = {
       leads: Table<LeadRow, 'company_id'>;
       lead_activities: Table<LeadActivityRow, 'lead_id' | 'kind'>;
       tasks: Table<TaskRow, 'type' | 'title' | 'due_at' | 'assignee_id'>;
+      offers: Table<OfferRow, 'code' | 'label'>;
+      app_settings: Table<AppSettingsRow, never>;
+      commission_rules: Table<CommissionRuleRow, 'beneficiary_role' | 'offer_code' | 'amount_cents' | 'tranche1_bps'>;
+      contracts: Table<ContractRow, 'reference' | 'customer_id' | 'offer_code' | 'signed_at'>;
     };
     Views: {
       lead_overview: { Row: LeadOverview; Relationships: [] };
       task_overview: { Row: TaskOverview; Relationships: [] };
+      contract_overview: { Row: ContractOverview; Relationships: [] };
+      payment_overview: { Row: PaymentOverview; Relationships: [] };
+      commission_overview: { Row: CommissionOverview; Relationships: [] };
     };
     Functions: {
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };
@@ -136,6 +215,30 @@ export type Database = {
       };
       my_referrals: { Args: Record<PropertyKey, never>; Returns: Referral[] };
       lead_timeline: { Args: { p_lead_id: string }; Returns: TimelineEntry[] };
+      convert_lead_to_customer: {
+        Args: {
+          p_lead_id: string; p_offer_code: OfferCode; p_with_planning?: boolean; p_signed_at?: string;
+          p_activated_at?: string | null; p_monthly_price_cents?: number | null; p_setup_fee_cents?: number | null;
+          p_one_shot_price_cents?: number | null;
+        };
+        Returns: string;
+      };
+      activate_contract: { Args: { p_contract_id: string; p_date?: string }; Returns: undefined };
+      end_contract: { Args: { p_contract_id: string; p_mode: ContractStatus; p_date?: string; p_reason?: string }; Returns: undefined };
+      generate_monthly_payments: { Args: { p_month?: string }; Returns: number };
+      set_payment_status: {
+        Args: { p_payment_id: string; p_status: PaymentStatus; p_paid_at?: string | null; p_method?: string | null; p_reference?: string | null };
+        Returns: undefined;
+      };
+      update_commissions: {
+        Args: { p_ids: string[]; p_status: CommissionStatus; p_reference?: string | null; p_reason?: string | null };
+        Returns: number;
+      };
+      publish_commission_rule: {
+        Args: { p_role: BeneficiaryRole; p_offer: OfferCode; p_amount_cents: number; p_tranche1_bps: number; p_tranche2_bps: number; p_after: number | null };
+        Returns: string;
+      };
+      my_commissions: { Args: Record<PropertyKey, never>; Returns: MyCommission[] };
       import_leads: {
         Args: {
           p_rows: { company: Record<string, string | null>; contact: Record<string, string | null>; notes: string | null }[];
