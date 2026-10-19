@@ -51,7 +51,10 @@ await rejects('SIREN invalide (8 chiffres)', `insert into companies (name, siren
 await rejects('deuxième prospect ouvert sur la même entreprise', `insert into leads (company_id) values ('10000000-0000-0000-0000-000000000001')`);
 await rejects('statut "perdu" sans motif', `update leads set status='perdu' where id='20000000-0000-0000-0000-000000000001'`);
 await rejects('statut hors pipeline', `update leads set status='en_pause' where id='20000000-0000-0000-0000-000000000001'`);
-await rejects('tâche "fait" sans date de réalisation', `insert into tasks (lead_id,type,title,due_at,status,assignee_id) values ('20000000-0000-0000-0000-000000000001','appeler','x',now(),'fait','00000000-0000-0000-0000-000000000001')`);
+await ok('tâche créée « fait » : date de réalisation remplie automatiquement', async () => {
+  const r = await one(`insert into tasks (lead_id,type,title,due_at,status,assignee_id) values ('20000000-0000-0000-0000-000000000001','appeler','x',now(),'fait','00000000-0000-0000-0000-000000000001') returning completed_at`);
+  if (!r.completed_at) throw new Error('vide');
+});
 
 await db.exec(`
   insert into customers (id, company_id, lead_id) values ('30000000-0000-0000-0000-000000000001','10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001');

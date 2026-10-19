@@ -7,12 +7,34 @@ Stack : React · TypeScript · Vite · Tailwind · Supabase · Vercel.
 |---|---|---|
 | 1 | Architecture, schéma de données | ✅ livrée |
 | 2 | Authentification, profils, permissions (RLS), gestion des utilisateurs | ✅ livrée |
-| 3 | CRM, pipeline Kanban, tâches et relances, espace apporteur | à venir |
+| 3 | CRM, pipeline Kanban, tâches et relances, espace apporteur | ✅ livrée |
 | 4 | Clients, contrats, moteur de commissions, paramétrage | à venir |
 | 5 | Tableau de bord, prévisionnel N/N+1/N+2 | à venir |
 | 6 | Tests de bout en bout, exports, mode démo, déploiement final | à venir |
 
 ---
+
+## Mise à jour étape 3
+
+Dans le **SQL Editor** de Supabase, exécute le fichier
+`supabase/migrations/20261019001000_crm.sql` (copier-coller puis **Run**).
+Le site se met à jour tout seul via Vercel.
+
+Nouveautés :
+- **Prospects** : pipeline Kanban (glisser-déposer, appui long sur mobile) et vue Liste triable,
+  recherche, filtres (responsable, source, statut), raccourcis « relances en retard »,
+  « sans activité », « à attribuer ».
+- **Fiche prospect** : coordonnées modifiables (appel en un clic sur mobile), statut,
+  prochaine relance, responsable (admin), notes, tâches, historique complet
+  (créations, changements de statut et de responsable écrits automatiquement).
+- **Doublons** : SIREN, email ou téléphone identique → création bloquée (l'admin peut forcer
+  sauf SIREN) ; même site internet → simple avertissement.
+- **Mes relances** : tâches en retard / du jour / de la semaine, prospects à relancer,
+  prospects sans activité depuis 14 jours (réglable plus tard dans Paramètres).
+- **Espace apporteur** : dépôt d'un prospect et suivi de son statut, sans accès aux autres données.
+- Recherche globale en haut de l'écran.
+
+Aucun SMS ni email n'est envoyé automatiquement (prévu pour une version ultérieure).
 
 ## Mise en route (étape 2)
 
@@ -87,7 +109,7 @@ Connecte-toi avec ton compte admin, puis va dans **Utilisateurs → Inviter**.
 ## Tests
 
 ```bash
-npm run db:test      # schéma (31 vérifications) + permissions par rôle (84 tests) sur PostgreSQL embarqué
+npm run db:test      # schéma (31) + permissions par rôle (84) + CRM (40) sur PostgreSQL embarqué
 npm test             # tests unitaires du front
 npm run typecheck
 ```

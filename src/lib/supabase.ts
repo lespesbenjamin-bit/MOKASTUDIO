@@ -45,6 +45,10 @@ export function humanizeError(error: unknown): string {
     [/Failed to fetch|NetworkError|Load failed/i, 'Connexion au serveur impossible. Vérifiez votre réseau.'],
     [/Modification non autorisée|row-level security|permission denied/i, 'Vous n\'avez pas les droits pour cette action.'],
     [/JWT expired|Auth session missing/i, 'Votre session a expiré. Reconnectez-vous.'],
+    [/companies_siren_uidx/i, 'Une entreprise avec ce SIREN existe déjà.'],
+    [/leads_one_open_per_company/i, 'Cette entreprise a déjà un prospect en cours.'],
+    [/payments_one_per_period/i, 'Une mensualité existe déjà pour ce mois.'],
+    [/violates check constraint/i, 'Certaines valeurs ne sont pas valides.'],
   ];
   for (const [re, msg] of map) if (re.test(raw)) return msg;
   return raw || 'Une erreur inattendue est survenue.';

@@ -1,7 +1,7 @@
 import { clsx } from 'clsx';
 import {
   forwardRef, useEffect, useId, useRef,
-  type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes,
+  type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes,
 } from 'react';
 import { AlertCircle, CheckCircle2, Loader2, X } from 'lucide-react';
 
@@ -95,18 +95,33 @@ export const Select = forwardRef<HTMLSelectElement, SelectHTMLAttributes<HTMLSel
   },
 );
 
+export const Textarea = forwardRef<HTMLTextAreaElement, TextareaHTMLAttributes<HTMLTextAreaElement> & { invalid?: boolean }>(
+  function Textarea({ className, invalid, rows = 3, ...rest }, ref) {
+    return (
+      <textarea
+        ref={ref}
+        rows={rows}
+        aria-invalid={invalid || undefined}
+        className={clsx(fieldBase, 'py-2 leading-relaxed', invalid ? 'border-red-400' : 'border-beige-300', className)}
+        {...rest}
+      />
+    );
+  },
+);
+
 // --- Carte, badge -----------------------------------------------------------
 export function Card({ className, children }: { className?: string; children: ReactNode }) {
   return <div className={clsx('rounded-xl border border-beige-300/70 bg-white shadow-card', className)}>{children}</div>;
 }
 
-type Tone = 'neutral' | 'terracotta' | 'success' | 'warning' | 'muted';
+type Tone = 'neutral' | 'terracotta' | 'success' | 'warning' | 'muted' | 'danger';
 const tones: Record<Tone, string> = {
   neutral: 'bg-beige text-anthracite-700',
   terracotta: 'bg-terracotta-50 text-terracotta-700',
   success: 'bg-emerald-50 text-emerald-800',
   warning: 'bg-amber-50 text-amber-800',
   muted: 'bg-creme text-anthracite-500 border border-beige-300',
+  danger: 'bg-red-50 text-red-800',
 };
 export function Badge({ tone = 'neutral', children }: { tone?: Tone; children: ReactNode }) {
   return (
@@ -208,6 +223,41 @@ export function ConfirmDialog({ open, title, message, confirmLabel, danger, load
         {error && <Alert>{error}</Alert>}
       </div>
     </Modal>
+  );
+}
+
+export function EmptyState({ icon, title, children }: { icon?: ReactNode; title: string; children?: ReactNode }) {
+  return (
+    <div className="flex flex-col items-center px-6 py-12 text-center">
+      {icon && <div className="mb-3 text-anthracite-300">{icon}</div>}
+      <p className="text-sm font-medium text-anthracite-700">{title}</p>
+      {children && <div className="mt-1 max-w-sm text-sm text-anthracite-500">{children}</div>}
+    </div>
+  );
+}
+
+/** Contrôle segmenté (ex. Kanban / Tableau) */
+export function Segmented<T extends string>({ value, onChange, options, label }: {
+  value: T; onChange: (v: T) => void; options: { value: T; label: string; icon?: ReactNode }[]; label: string;
+}) {
+  return (
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-lg border border-beige-300 bg-white p-0.5">
+      {options.map((o) => (
+        <button
+          key={o.value}
+          role="radio"
+          aria-checked={value === o.value}
+          onClick={() => onChange(o.value)}
+          className={clsx(
+            'inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-sm transition-colors',
+            value === o.value ? 'bg-anthracite text-white' : 'text-anthracite-700 hover:bg-creme',
+          )}
+        >
+          {o.icon}
+          {o.label}
+        </button>
+      ))}
+    </div>
   );
 }
 

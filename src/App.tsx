@@ -8,6 +8,10 @@ import { SetPasswordPage } from '@/features/auth/SetPasswordPage';
 import { HomePage } from '@/features/home/HomePage';
 import { ProfilePage } from '@/features/account/ProfilePage';
 import { UsersPage } from '@/features/settings/UsersPage';
+import { LeadsPage } from '@/features/leads/LeadsPage';
+import { LeadDetailPage } from '@/features/leads/LeadDetailPage';
+import { TasksPage } from '@/features/tasks/TasksPage';
+import { ReferralsPage } from '@/features/referrer/ReferralsPage';
 import { Alert } from '@/components/ui';
 import { AppLayout } from './app/AppLayout';
 import { RequireAuth, RequireRole } from './app/guards';
@@ -47,6 +51,10 @@ export function App() {
                   path="parametres/utilisateurs"
                   element={<RequireRole roles={['admin']}><UsersPage /></RequireRole>}
                 />
+                <Route path="prospects" element={<RequireRole roles={['admin', 'commercial']}><LeadsPage /></RequireRole>} />
+                <Route path="prospects/:id" element={<RequireRole roles={['admin', 'commercial']}><LeadDetailPage /></RequireRole>} />
+                <Route path="relances" element={<RequireRole roles={['admin', 'commercial']}><TasksPage /></RequireRole>} />
+                <Route path="apports" element={<RequireRole roles={['apporteur']}><ReferralsPage /></RequireRole>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Route>

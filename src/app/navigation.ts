@@ -25,10 +25,10 @@ export const NAV: NavSection[] = [
   {
     title: 'Commercial',
     items: [
-      { to: '/prospects', label: 'Prospects', icon: Briefcase, roles: ['admin', 'commercial'], comingInStep: 3 },
-      { to: '/relances', label: 'Mes relances', icon: CalendarCheck, roles: ['admin', 'commercial'], comingInStep: 3 },
+      { to: '/prospects', label: 'Prospects', icon: Briefcase, roles: ['admin', 'commercial'] },
+      { to: '/relances', label: 'Mes relances', icon: CalendarCheck, roles: ['admin', 'commercial'] },
       { to: '/clients', label: 'Clients & contrats', icon: FileSignature, roles: ['admin', 'commercial'], comingInStep: 4 },
-      { to: '/apports', label: 'Mes prospects transmis', icon: Send, roles: ['apporteur'], comingInStep: 3 },
+      { to: '/apports', label: 'Mes prospects transmis', icon: Send, roles: ['apporteur'] },
       { to: '/commissions', label: 'Commissions', icon: Coins, roles: ['admin', 'commercial', 'apporteur'], comingInStep: 4 },
     ],
   },

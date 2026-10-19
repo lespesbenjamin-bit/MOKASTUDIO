@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { NavLink, Outlet, useLocation } from 'react-router-dom';
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { clsx } from 'clsx';
-import { LogOut, Menu, X } from 'lucide-react';
+import { LogOut, Menu, Search, X } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { BrandMark } from '@/features/auth/AuthLayout';
 import { ROLE_LABELS } from '@/lib/roles';
@@ -52,7 +52,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
                   <li key={item.to}>
                     <NavLink
                       to={item.to}
-                      end
+                      end={item.to === '/' || item.to === '/parametres'}
                       onClick={onNavigate}
                       className={({ isActive }) =>
                         clsx(
@@ -99,6 +99,35 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
+/** Recherche globale : ouvre la liste des prospects filtrée */
+function GlobalSearch({ className }: { className?: string }) {
+  const { role } = useAuth();
+  const navigate = useNavigate();
+  const [value, setValue] = useState('');
+  if (role !== 'admin' && role !== 'commercial') return null;
+  return (
+    <form
+      role="search"
+      className={clsx('relative', className)}
+      onSubmit={(e) => {
+        e.preventDefault();
+        const q = value.trim();
+        navigate(q ? `/prospects?q=${encodeURIComponent(q)}` : '/prospects');
+        setValue('');
+      }}
+    >
+      <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-anthracite-300" aria-hidden />
+      <input
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        placeholder="Rechercher un prospect…"
+        aria-label="Rechercher un prospect"
+        className="h-9 w-full rounded-lg border border-beige-300 bg-white pl-9 pr-3 text-sm placeholder:text-anthracite-300 focus:border-terracotta focus:outline-none focus:ring-2 focus:ring-terracotta/30"
+      />
+    </form>
+  );
+}
+
 export function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
@@ -138,7 +167,12 @@ export function AppLayout() {
       )}
 
       <main className="lg:pl-60">
-        <div className="mx-auto max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
+        <div className="hidden border-b border-beige-300/60 bg-creme/80 backdrop-blur lg:block">
+          <div className="mx-auto flex h-14 max-w-7xl items-center px-10">
+            <GlobalSearch className="w-80" />
+          </div>
+        </div>
+        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-10 lg:py-8">
           <Outlet />
         </div>
       </main>
