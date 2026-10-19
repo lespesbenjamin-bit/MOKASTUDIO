@@ -1,5 +1,5 @@
 import {
-  BarChart3, Briefcase, Wallet, CalendarCheck, Coins, FileSignature, Home, LineChart, Send, Settings, UserCircle, Users,
+  BarChart3, Briefcase, Wallet, CalendarCheck, Coins, FileSignature, Home, LineChart, Map, Send, Settings, UserCircle, Users,
   type LucideIcon,
 } from 'lucide-react';
 import type { UserRole } from '@/types/database';
@@ -27,6 +27,7 @@ export const NAV: NavSection[] = [
     items: [
       { to: '/prospects', label: 'Prospects', icon: Briefcase, roles: ['admin', 'commercial'] },
       { to: '/relances', label: 'Mes relances', icon: CalendarCheck, roles: ['admin', 'commercial'] },
+      { to: '/carte', label: 'Carte & tournées', icon: Map, roles: ['admin', 'commercial'] },
       { to: '/clients', label: 'Clients & contrats', icon: FileSignature, roles: ['admin', 'commercial'] },
       { to: '/paiements', label: 'Paiements', icon: Wallet, roles: ['admin'] },
       { to: '/apports', label: 'Mes prospects transmis', icon: Send, roles: ['apporteur'] },

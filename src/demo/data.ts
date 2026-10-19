@@ -1,7 +1,7 @@
 // Données FICTIVES du mode démonstration. Aucun lien avec la base réelle.
 // Les dates sont calculées par rapport au jour courant pour rester vraisemblables.
 import type {
-  CommissionOverview, ContractOverview, DashboardKpis, LeadOverview, LeadStatus, MonthlyPoint, OfferRow,
+  CommissionOverview, ContractOverview, DashboardKpis, LeadOverview, LeadStatus, MapPoint, MonthlyPoint, OfferRow,
   PaymentOverview, ProfileRow, ScenarioRow, TaskOverview, TimelineEntry, UserRole,
 } from '@/types/database';
 
@@ -190,3 +190,42 @@ export function demoKpis(): DashboardKpis {
 }
 
 export const DEMO_IDS = { camille: CAM.id, hugo: HUGO.id, agathe: AGA.id };
+
+// --- Carte : positions FICTIVES autour de Toulouse ------------------------------
+const CITY_AT: Record<string, [number, number]> = {
+  Toulouse: [43.6045, 1.444], Colomiers: [43.6112, 1.335], Blagnac: [43.6372, 1.3903],
+  Balma: [43.611, 1.4994], Muret: [43.4614, 1.3267], Tournefeuille: [43.5853, 1.3442],
+};
+const jitter = (i: number) => [((i * 37) % 17 - 8) / 900, ((i * 53) % 19 - 9) / 700] as const;
+
+export const DEMO_MAP_POINTS: MapPoint[] = [
+  ...DEMO_LEADS.filter((l) => l.status !== 'gagne').map((l, i): MapPoint => {
+    const [lat, lng] = CITY_AT[l.city ?? 'Toulouse'] ?? CITY_AT.Toulouse!;
+    const [dy, dx] = jitter(i + 1);
+    return {
+      company_id: l.company_id, company_name: l.company_name, address: null, postal_code: l.postal_code, city: l.city,
+      latitude: lat + dy, longitude: lng + dx, geocode_precision: i % 4 === 3 ? 'ville' : 'adresse', geocoded_at: day(-1),
+      kind: 'prospect', status: l.status, lead_id: l.id, contract_id: null, owner_id: l.owner_id, owner_name: l.owner_name,
+      source: l.source, next_follow_up_at: l.next_follow_up_at, contact_first_name: l.contact_first_name,
+      contact_last_name: l.contact_last_name, contact_phone: l.contact_phone, offer_code: null, site_status: null, overdue_payments: 0,
+    };
+  }),
+  ...DEMO_CONTRACTS.map((k, i): MapPoint => {
+    const [lat, lng] = CITY_AT[k.city ?? 'Toulouse'] ?? CITY_AT.Toulouse!;
+    const [dy, dx] = jitter(i + 20);
+    return {
+      company_id: k.company_id, company_name: k.company_name, address: null, postal_code: '31000', city: k.city,
+      latitude: lat + dy, longitude: lng + dx, geocode_precision: 'adresse', geocoded_at: day(-1),
+      kind: 'client', status: 'client', lead_id: k.lead_id, contract_id: k.id, owner_id: k.owner_id, owner_name: k.owner_name,
+      source: null, next_follow_up_at: null, contact_first_name: null, contact_last_name: null, contact_phone: null,
+      offer_code: k.offer_code, site_status: k.site_status, overdue_payments: k.overdue_payments,
+    };
+  }),
+  // Une entreprise sans adresse exploitable, pour montrer la liste « non localisés »
+  {
+    company_id: 'co-sans-adresse', company_name: 'Food-truck Le Nomade (fictif)', address: null, postal_code: null, city: null,
+    latitude: null, longitude: null, geocode_precision: null, geocoded_at: null, kind: 'prospect', status: 'a_contacter',
+    lead_id: 'l01', contract_id: null, owner_id: CAM.id, owner_name: CAM.full_name, source: 'prospection', next_follow_up_at: null,
+    contact_first_name: null, contact_last_name: null, contact_phone: null, offer_code: null, site_status: null, overdue_payments: 0,
+  },
+];

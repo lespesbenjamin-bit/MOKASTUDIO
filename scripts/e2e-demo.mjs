@@ -29,12 +29,12 @@ const PAGES = {
     ['/', /Bonjour|Bonsoir/], ['/tableau-de-bord', /Tableau de bord/], ['/prospects', /Prospects/], ['/prospects/l05', /Fleuriste Pétales/],
     ['/relances', /relances/i], ['/clients', /Clients & contrats/], ['/clients/k1', /Pizzeria Bella/], ['/paiements', /Paiements/],
     ['/commissions', /Commissions/], ['/finances', /prévisionnel/], ['/parametres', /Paramètres/], ['/parametres/utilisateurs', /Utilisateurs/],
-    ['/mon-profil', /Mon profil/],
+    ['/mon-profil', /Mon profil/], ['/carte', /Carte/],
   ],
-  commercial: [['/', /Bonjour|Bonsoir/], ['/prospects', /Prospects/], ['/relances', /Mes relances/], ['/clients', /Clients/], ['/commissions', /Mes commissions/]],
+  commercial: [['/', /Bonjour|Bonsoir/], ['/prospects', /Prospects/], ['/carte', /Carte/], ['/relances', /Mes relances/], ['/clients', /Clients/], ['/commissions', /Mes commissions/]],
   apporteur: [['/', /Bonjour|Bonsoir/], ['/apports', /prospects transmis/], ['/commissions', /Mes commissions/]],
 };
-const FORBIDDEN = { commercial: ['/parametres', '/tableau-de-bord', '/paiements'], apporteur: ['/prospects', '/clients', '/parametres'] };
+const FORBIDDEN = { commercial: ['/parametres', '/tableau-de-bord', '/paiements'], apporteur: ['/prospects', '/clients', '/parametres', '/carte'] };
 
 try {
   await waitForServer();
@@ -79,6 +79,39 @@ try {
     await page.getByRole('button', { name: 'Créer le prospect' }).click();
     await page.getByText(/Mode démonstration : aucune modification/).waitFor({ timeout: 5000 });
   });
+  console.log('\nCarte et tournée');
+  const mapErrors = [];
+  page.on('pageerror', (e) => mapErrors.push(e.message));
+  await check('épingles et regroupements affichés', async () => {
+    await page.goto(`${BASE}/carte`);
+    await page.locator('.moka-pin, .moka-cluster').first().waitFor({ timeout: 8000 });
+  });
+  await check('les perdus sont masqués par défaut, réaffichables via la légende', async () => {
+    const perdu = page.getByRole('button', { name: /^Perdu/ });
+    if ((await perdu.getAttribute('aria-pressed')) !== 'false') throw new Error('Perdu affiché par défaut');
+    await perdu.click();
+    if ((await perdu.getAttribute('aria-pressed')) !== 'true') throw new Error('bascule inopérante');
+  });
+  await check('liste des entreprises non localisées', async () => {
+    await page.getByRole('button', { name: /non localisé/ }).click();
+    await page.getByText('Food-truck Le Nomade (fictif)').waitFor({ timeout: 3000 });
+    await page.keyboard.press('Escape');
+  });
+  await check('construire une tournée de 3 arrêts → lien Google Maps', async () => {
+    await page.evaluate(() => localStorage.removeItem('moka.map.tour'));
+    await page.goto(`${BASE}/carte`);
+    // Clients seulement : zoom serré pour éviter les regroupements
+    await page.getByRole('radio', { name: 'Clients' }).click();
+    for (let i = 0; i < 3; i++) {
+      await page.locator('.leaflet-marker-icon:has(.moka-pin)').first().dispatchEvent('click');
+      await page.getByRole('button', { name: 'Ajouter à la tournée' }).click();
+    }
+    await page.locator('.moka-stop').nth(2).waitFor({ timeout: 3000 });
+    const href = await page.getByRole('link', { name: /Google Maps/ }).last().getAttribute('href');
+    if (!href?.startsWith('https://www.google.com/maps/dir/?api=1') || !href.includes('waypoints=')) throw new Error(`lien inattendu : ${href}`);
+  });
+  await check('carte sans erreur JavaScript', async () => { if (mapErrors.length) throw new Error(mapErrors.join(' | ')); });
+
   await check('quitter la démo ramène à la connexion', async () => {
     await page.goto(`${BASE}/`);
     await page.getByRole('button', { name: 'Quitter la démo' }).click();

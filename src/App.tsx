@@ -21,6 +21,7 @@ import { SettingsPage } from '@/features/settings/SettingsPage';
 // Pages avec graphiques chargées à la demande (bibliothèque de graphiques volumineuse)
 const DashboardPage = lazy(() => import('@/features/finance/DashboardPage').then((m) => ({ default: m.DashboardPage })));
 const ForecastPage = lazy(() => import('@/features/finance/ForecastPage').then((m) => ({ default: m.ForecastPage })));
+const MapPage = lazy(() => import('@/features/map/MapPage').then((m) => ({ default: m.MapPage })));
 import { Alert, Spinner } from '@/components/ui';
 import { AppLayout } from './app/AppLayout';
 import { RequireAuth, RequireRole } from './app/guards';
@@ -68,6 +69,7 @@ export function App() {
                 <Route path="prospects/:id" element={<RequireRole roles={['admin', 'commercial']}><LeadDetailPage /></RequireRole>} />
                 <Route path="relances" element={<RequireRole roles={['admin', 'commercial']}><TasksPage /></RequireRole>} />
                 <Route path="apports" element={<RequireRole roles={['apporteur']}><ReferralsPage /></RequireRole>} />
+                <Route path="carte" element={<RequireRole roles={['admin', 'commercial']}><Suspense fallback={<Spinner />}><MapPage /></Suspense></RequireRole>} />
                 <Route path="clients" element={<RequireRole roles={['admin', 'commercial']}><CustomersPage /></RequireRole>} />
                 <Route path="clients/:id" element={<RequireRole roles={['admin', 'commercial']}><ContractPage /></RequireRole>} />
                 <Route path="paiements" element={<RequireRole roles={['admin']}><PaymentsPage /></RequireRole>} />

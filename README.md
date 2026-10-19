@@ -11,6 +11,7 @@ Stack : React · TypeScript · Vite · Tailwind · Supabase (PostgreSQL, Auth, E
 | 4 | Clients, contrats, paiements, moteur de commissions, paramètres | ✅ |
 | 5 | Tableau de bord, prévisionnel N / N+1 / N+2 | ✅ |
 | 6 | Mode démonstration, exports et sauvegarde, tests finaux, déploiement | ✅ |
+| + | Carte des prospects et clients, tournées | ✅ |
 
 ---
 
@@ -32,6 +33,7 @@ Tout se fait dans le navigateur ; aucun logiciel n'est nécessaire sur votre ord
    | `…001100_import_leads.sql` | Import de fichiers |
    | `…001200_sales_commissions.sql` | Contrats, paiements, commissions |
    | `…001300_dashboard.sql` | Tableau de bord |
+   | `…001400_map.sql` | Carte (positions GPS des entreprises) |
 
 3. **Contrôle de sécurité** : exécutez `supabase/tests/controle-securite.sql` dans le SQL Editor.
    Le résultat s'affiche en rouge **volontairement** (c'est ce qui annule les données de test) :
@@ -101,6 +103,14 @@ Cycle de vente :
 4. Les commissions deviennent **acquises** automatiquement (1er encaissement, puis 3ᵉ mensualité),
    puis **facturées / payées** par lot depuis **Commissions** (référence de virement obligatoire).
 
+**Carte & tournées** (admin et commerciaux, chacun ne voit que ses fiches) : une épingle par entreprise,
+couleur selon le statut (rond = prospect, losange = client, pointillé = position approximative).
+Les adresses sont localisées automatiquement à l'ouverture de la carte grâce au service officiel
+gratuit de l'IGN (Géoplateforme) ; une adresse modifiée est relocalisée. Les adresses introuvables
+sont listées (« non localisés ») et peuvent être placées à la main. **Tournée** : ajoutez des épingles,
+l'application calcule l'ordre de visite le plus court puis ouvre le trajet dans Google Maps
+(découpé en tronçons sur téléphone, Google y limitant le nombre d'étapes).
+
 Règles de gestion clés : montants en centimes ; CA encaissé, CA signé et MRR jamais additionnés ;
 grille de commissions versionnée (aucun recalcul rétroactif) ; commission payée définitive ;
 provision de cotisations = estimation, pas un calcul fiscal ; toutes les opérations sensibles
@@ -120,9 +130,9 @@ npm run dev                  # http://localhost:5173
 
 | Commande | Ce qui est vérifié |
 |---|---|
-| `npm test` | Unitaires : montants, dates, import, moteur prévisionnel (38) |
-| `npm run db:test` | PostgreSQL embarqué : schéma (31), permissions par rôle (84), CRM (40), import (12), ventes & commissions (34), tableau de bord (17), script de contrôle Supabase |
-| `npm run test:e2e` | Navigateur réel sur le mode démo : toutes les pages × 3 rôles, accès refusés, écritures bloquées (32) — après `npm run build` |
+| `npm test` | Unitaires : montants, dates, import, moteur prévisionnel, géocodage et tournées (54) |
+| `npm run db:test` | PostgreSQL embarqué : schéma (31), permissions par rôle (84), CRM (40), import (12), ventes & commissions (34), tableau de bord (17), carte (17), script de contrôle Supabase |
+| `npm run test:e2e` | Navigateur réel sur le mode démo : toutes les pages × 3 rôles, accès refusés, écritures bloquées, carte et tournée (40) — après `npm run build` |
 | `npm run test:all` | Tout ce qui précède |
 
 Les tests de base utilisent un PostgreSQL embarqué (PGlite) qui imite Supabase dans sa configuration
@@ -134,11 +144,11 @@ Après création du projet Supabase, les types peuvent être régénérés :
 ### Arborescence
 
 ```
-supabase/migrations/   13 migrations versionnées (schéma, RLS, fonctions)
+supabase/migrations/   14 migrations versionnées (schéma, RLS, fonctions)
 supabase/functions/    admin-users (seul code utilisant la clé service_role)
 supabase/tests/        controle-securite.sql (à lancer dans Supabase)
 scripts/               tests base de données et bout en bout
-src/features/          auth, leads, tasks, import, referrer, sales, finance, settings
+src/features/          auth, leads, tasks, import, referrer, sales, finance, map, settings
 src/demo/              faux serveur et données fictives du mode démonstration
 docs/ARCHITECTURE.md   architecture, schéma, règles d'accès
 ```

@@ -43,7 +43,20 @@ export type CompanyRow = {
   id: string; name: string; siren: string | null; sector: string | null; address: string | null;
   postal_code: string | null; city: string | null; website: string | null; website_domain: string | null;
   created_by: string | null;
+  latitude: number | null; longitude: number | null; geocode_precision: GeocodePrecision | null;
+  geocode_label: string | null; geocoded_at: string | null;
 } & Timestamps;
+
+export type GeocodePrecision = 'adresse' | 'rue' | 'ville' | 'manuel' | 'introuvable';
+
+export type MapPoint = {
+  company_id: string; company_name: string; address: string | null; postal_code: string | null; city: string | null;
+  latitude: number | null; longitude: number | null; geocode_precision: GeocodePrecision | null; geocoded_at: string | null;
+  kind: 'prospect' | 'client'; status: LeadStatus | 'client'; lead_id: string | null; contract_id: string | null;
+  owner_id: string | null; owner_name: string | null; source: LeadSource | null; next_follow_up_at: string | null;
+  contact_first_name: string | null; contact_last_name: string | null; contact_phone: string | null;
+  offer_code: OfferCode | null; site_status: SiteStatus | null; overdue_payments: number;
+};
 
 export type ContactRow = {
   id: string; company_id: string; first_name: string | null; last_name: string | null; job_title: string | null;
@@ -206,6 +219,7 @@ export type Database = {
       contract_overview: { Row: ContractOverview; Relationships: [] };
       payment_overview: { Row: PaymentOverview; Relationships: [] };
       commission_overview: { Row: CommissionOverview; Relationships: [] };
+      map_points: { Row: MapPoint; Relationships: [] };
     };
     Functions: {
       is_admin: { Args: Record<PropertyKey, never>; Returns: boolean };

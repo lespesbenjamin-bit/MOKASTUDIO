@@ -1,0 +1,26 @@
+/* Carte : fond OpenStreetMap adouci aux couleurs Moka */
+.moka-tiles { filter: saturate(0.55) sepia(0.12) brightness(1.02); }
+.leaflet-container { font-family: Inter, ui-sans-serif, system-ui, sans-serif; background: #EDE3D8; }
+.moka-placing .leaflet-container, .moka-placing.leaflet-container { cursor: crosshair; }
+
+.moka-pin {
+  display: block; width: 18px; height: 18px; margin: 2px; border-radius: 9999px;
+  background: var(--pin); border: 2.5px solid #fff;
+  box-shadow: 0 1px 3px rgba(41, 39, 36, .45);
+}
+/* Client : losange, pour ne pas dépendre de la couleur seule */
+.moka-pin--client { border-radius: 4px; transform: rotate(45deg) scale(.92); }
+/* Position approximative (ville seulement) : contour pointillé */
+.moka-pin--approx { border-style: dashed; opacity: .85; }
+
+.moka-stop {
+  display: flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 9999px;
+  background: #292724; color: #fff; font: 600 13px/1 Inter, sans-serif; border: 2.5px solid #fff;
+  box-shadow: 0 1px 4px rgba(41, 39, 36, .5);
+}
+
+.moka-cluster {
+  display: flex; align-items: center; justify-content: center; border-radius: 9999px;
+  background: rgba(41, 39, 36, .88); color: #F8F4EF; font: 600 13px/1 Inter, sans-serif;
+  border: 3px solid rgba(248, 244, 239, .9); box-shadow: 0 1px 4px rgba(41, 39, 36, .4);
+}

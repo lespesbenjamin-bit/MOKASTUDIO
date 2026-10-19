@@ -3,7 +3,7 @@
 // et toute tentative d'écriture est refusée.
 import type { UserRole } from '@/types/database';
 import {
-  DEMO_COMMISSIONS, DEMO_CONTRACTS, DEMO_IDS, DEMO_LEADS, DEMO_MONTHLY, DEMO_OFFERS, DEMO_PAYMENTS, DEMO_PROFILES,
+  DEMO_COMMISSIONS, DEMO_CONTRACTS, DEMO_IDS, DEMO_LEADS, DEMO_MAP_POINTS, DEMO_MONTHLY, DEMO_OFFERS, DEMO_PAYMENTS, DEMO_PROFILES,
   DEMO_RULES, DEMO_SCENARIOS, DEMO_SETTINGS, DEMO_TASKS, DEMO_TIMELINE, DEMO_USERS, demoKpis,
 } from './data';
 
@@ -44,6 +44,7 @@ function tables(role: UserRole, uid: string): Record<string, Row[]> {
     contract_overview: contracts,
     payment_overview: DEMO_PAYMENTS.filter((p) => contractIds.has(p.contract_id)),
     commission_overview: role === 'apporteur' ? [] : mine(DEMO_COMMISSIONS, 'beneficiary_id'),
+    map_points: role === 'apporteur' ? [] : mine(DEMO_MAP_POINTS, 'owner_id'),
     offers: DEMO_OFFERS,
     commission_rules: role === 'admin' ? DEMO_RULES : DEMO_RULES.filter((r) => r.beneficiary_role === role),
     app_settings: role === 'admin' ? [DEMO_SETTINGS] : [],
