@@ -9,10 +9,23 @@ Stack : React · TypeScript · Vite · Tailwind · Supabase · Vercel.
 | 2 | Authentification, profils, permissions (RLS), gestion des utilisateurs | ✅ livrée |
 | 3 | CRM, pipeline Kanban, tâches et relances, espace apporteur | ✅ livrée |
 | 4 | Clients, contrats, moteur de commissions, paramétrage | ✅ livrée |
-| 5 | Tableau de bord, prévisionnel N/N+1/N+2 | à venir |
+| 5 | Tableau de bord, prévisionnel N/N+1/N+2 | ✅ livrée |
 | 6 | Tests de bout en bout, exports, mode démo, déploiement final | à venir |
 
 ---
+
+## Mise à jour étape 5
+
+Dans le **SQL Editor** de Supabase, exécute `supabase/migrations/20261019001300_dashboard.sql`.
+
+- **Tableau de bord** (admin) : filtres Aujourd'hui / Semaine / Mois / Année / Personnalisée.
+  Commercial : prospects, qualifiés, RDV, propositions, contrats, taux de transformation
+  (gagnés ÷ clos), ventes par commercial. Financier : CA encaissé, CA signé non encaissé, MRR, ARR,
+  abonnements actifs, souscriptions, résiliations, commissions dues / payées, frais fixes et coûts
+  variables estimés, trésorerie estimée. Graphiques CA, MRR et contrats sur 12 mois (+ tableau).
+- **Finances & prévisionnel** : scénarios prudent / central / ambitieux modifiables et enregistrables,
+  tableau N / N+1 / N+2, MRR réel (trait plein) prolongé par la prévision (pointillés),
+  comparaison de trésorerie des 3 scénarios. Le prévisionnel part du portefeuille réel.
 
 ## Mise à jour étape 4
 
@@ -141,7 +154,7 @@ Connecte-toi avec ton compte admin, puis va dans **Utilisateurs → Inviter**.
 ## Tests
 
 ```bash
-npm run db:test      # schéma (31) + permissions (84) + CRM (40) + import (12) + ventes et commissions (34) sur PostgreSQL embarqué
+npm run db:test      # schéma (31) + permissions (84) + CRM (40) + import (12) + ventes et commissions (34) + tableau de bord (17) sur PostgreSQL embarqué
 npm test             # tests unitaires du front
 npm run typecheck
 ```

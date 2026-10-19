@@ -19,7 +19,7 @@ export const NAV: NavSection[] = [
   {
     items: [
       { to: '/', label: 'Accueil', icon: Home, roles: ['admin', 'commercial', 'apporteur'] },
-      { to: '/tableau-de-bord', label: 'Tableau de bord', icon: BarChart3, roles: ['admin'], comingInStep: 5 },
+      { to: '/tableau-de-bord', label: 'Tableau de bord', icon: BarChart3, roles: ['admin'] },
     ],
   },
   {
@@ -36,7 +36,7 @@ export const NAV: NavSection[] = [
   {
     title: 'Pilotage',
     items: [
-      { to: '/finances', label: 'Finances & prévisionnel', icon: LineChart, roles: ['admin'], comingInStep: 5 },
+      { to: '/finances', label: 'Finances & prévisionnel', icon: LineChart, roles: ['admin'] },
     ],
   },
   {

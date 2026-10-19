@@ -13,10 +13,11 @@
     "test": "vitest run",
     "db:verify": "node scripts/verify-schema.mjs",
     "db:test-rls": "node scripts/test-rls.mjs",
-    "db:test": "npm run -s db:verify && npm run -s db:test-rls && npm run -s db:test-crm && npm run -s db:test-import && npm run -s db:test-sales",
+    "db:test": "npm run -s db:verify && npm run -s db:test-rls && npm run -s db:test-crm && npm run -s db:test-import && npm run -s db:test-sales && npm run -s db:test-dashboard",
     "db:test-crm": "node scripts/test-crm.mjs",
     "db:test-import": "node scripts/test-import.mjs",
-    "db:test-sales": "node scripts/test-sales.mjs"
+    "db:test-sales": "node scripts/test-sales.mjs",
+    "db:test-dashboard": "node scripts/test-dashboard.mjs"
   },
   "private": true,
   "type": "module",
@@ -47,6 +48,7 @@
     "react-hook-form": "^7.90.0",
     "react-router-dom": "^6.30.6",
     "read-excel-file": "^9.3.12",
+    "recharts": "^2.15.4",
     "zod": "^3.25.76"
   },
   "engines": {

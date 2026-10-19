@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { isSupabaseConfigured } from '@/lib/supabase';
@@ -17,7 +18,10 @@ import { ContractPage } from '@/features/sales/ContractPage';
 import { PaymentsPage } from '@/features/sales/PaymentsPage';
 import { CommissionsPage } from '@/features/sales/CommissionsPage';
 import { SettingsPage } from '@/features/settings/SettingsPage';
-import { Alert } from '@/components/ui';
+// Pages avec graphiques chargées à la demande (bibliothèque de graphiques volumineuse)
+const DashboardPage = lazy(() => import('@/features/finance/DashboardPage').then((m) => ({ default: m.DashboardPage })));
+const ForecastPage = lazy(() => import('@/features/finance/ForecastPage').then((m) => ({ default: m.ForecastPage })));
+import { Alert, Spinner } from '@/components/ui';
 import { AppLayout } from './app/AppLayout';
 import { RequireAuth, RequireRole } from './app/guards';
 
@@ -65,6 +69,8 @@ export function App() {
                 <Route path="paiements" element={<RequireRole roles={['admin']}><PaymentsPage /></RequireRole>} />
                 <Route path="commissions" element={<CommissionsPage />} />
                 <Route path="parametres" element={<RequireRole roles={['admin']}><SettingsPage /></RequireRole>} />
+                <Route path="tableau-de-bord" element={<RequireRole roles={['admin']}><Suspense fallback={<Spinner />}><DashboardPage /></Suspense></RequireRole>} />
+                <Route path="finances" element={<RequireRole roles={['admin']}><Suspense fallback={<Spinner />}><ForecastPage /></Suspense></RequireRole>} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Route>
             </Route>

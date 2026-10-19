@@ -164,6 +164,27 @@ export type ImportReport = {
   rows: { line: number; status: 'importe' | 'doublon' | 'erreur'; message?: string }[];
 };
 
+export type ScenarioKind = 'prudent' | 'central' | 'ambitieux' | 'personnalise';
+export type ScenarioRow = {
+  id: string; name: string; kind: ScenarioKind; start_month: string; horizon_years: number;
+  assumptions: Record<string, number>; is_reference: boolean; created_by: string | null;
+} & Timestamps;
+
+export type DashboardKpis = {
+  leads_created: number; leads_qualified: number; meetings: number; proposals: number; won: number; lost: number;
+  contracts_signed: number; conversion_rate_bps: number | null;
+  sales_by_owner: { name: string; contracts: number; value_cents: number }[];
+  cash_in_cents: number; signed_unpaid_cents: number; mrr_cents: number; arr_cents: number;
+  active_subscriptions: number; new_subscriptions: number; cancellations: number;
+  commissions_due_cents: number; commissions_forecast_cents: number; commissions_paid_cents: number;
+  fixed_costs_cents: number; variable_costs_cents: number; expenses_cents: number;
+  contributions_provision_cents: number; estimated_cash_cents: number; overdue_cents: number; period_days: number;
+};
+
+export type MonthlyPoint = {
+  month: string; cash_in_cents: number; mrr_cents: number; contracts_signed: number; active_subscriptions: number;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -177,6 +198,7 @@ export type Database = {
       app_settings: Table<AppSettingsRow, never>;
       commission_rules: Table<CommissionRuleRow, 'beneficiary_role' | 'offer_code' | 'amount_cents' | 'tranche1_bps'>;
       contracts: Table<ContractRow, 'reference' | 'customer_id' | 'offer_code' | 'signed_at'>;
+      financial_scenarios: Table<ScenarioRow, 'name' | 'kind' | 'start_month' | 'assumptions'>;
     };
     Views: {
       lead_overview: { Row: LeadOverview; Relationships: [] };
@@ -239,6 +261,9 @@ export type Database = {
         Returns: string;
       };
       my_commissions: { Args: Record<PropertyKey, never>; Returns: MyCommission[] };
+      dashboard_kpis: { Args: { p_from: string; p_to: string }; Returns: DashboardKpis };
+      dashboard_monthly: { Args: { p_end?: string; p_months?: number }; Returns: MonthlyPoint[] };
+      save_scenario: { Args: { p_id: string; p_assumptions: Record<string, number> }; Returns: undefined };
       import_leads: {
         Args: {
           p_rows: { company: Record<string, string | null>; contact: Record<string, string | null>; notes: string | null }[];
