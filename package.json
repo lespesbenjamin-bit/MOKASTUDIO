@@ -1,0 +1,48 @@
+{
+  "name": "moka-studio-business-hub",
+  "version": "0.1.0",
+  "description": "Moka Studio Business Hub — CRM, contrats, commissions et prévisionnel",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "test": "vitest run",
+    "db:verify": "node scripts/verify-schema.mjs",
+    "db:test-rls": "node scripts/test-rls.mjs",
+    "db:test": "npm run -s db:verify && npm run -s db:test-rls"
+  },
+  "private": true,
+  "type": "module",
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.5.10",
+    "@types/node": "^22.20.5",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "@vitejs/plugin-react": "^4.7.0",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.31",
+    "tailwindcss": "^3.4.19",
+    "typescript": "^5.9.3",
+    "vite": "^5.4.21",
+    "vitest": "^2.1.9"
+  },
+  "dependencies": {
+    "@hookform/resolvers": "^3.10.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "@tanstack/react-query": "^5.104.4",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.59.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-hook-form": "^7.90.0",
+    "react-router-dom": "^6.30.6",
+    "zod": "^3.25.76"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
