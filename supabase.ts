@@ -1,0 +1,56 @@
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/database';
+
+const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
+const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+
+/** false si les variables d'environnement ne sont pas renseignées. */
+export const isSupabaseConfigured = Boolean(url && anonKey && /^https:\/\//.test(url));
+
+// Seule la clé ANON (publique) est utilisée côté navigateur.
+export const supabase = createClient<Database>(
+  url ?? 'https://not-configured.invalid',
+  anonKey ?? 'not-configured',
+  { auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true } },
+);
+
+/** Traduit les erreurs techniques en messages lisibles. */
+export function humanizeError(error: unknown): string {
+  const raw =
+    error instanceof Error ? error.message
+    : typeof error === 'object' && error && 'message' in error ? String((error as { message: unknown }).message)
+    : String(error);
+
+  const map: [RegExp, string][] = [
+    [/Invalid login credentials/i, 'Email ou mot de passe incorrect.'],
+    [/Email not confirmed/i, 'Adresse email non confirmée. Utilisez le lien reçu par email.'],
+    [/User is banned/i, 'Ce compte est désactivé. Contactez l\'administrateur.'],
+    [/Password should be at least/i, 'Le mot de passe est trop court.'],
+    [/same.*password|different from the old/i, 'Le nouveau mot de passe doit être différent de l\'ancien.'],
+    [/rate limit|too many/i, 'Trop de tentatives. Patientez quelques minutes.'],
+    [/Failed to fetch|NetworkError|Load failed/i, 'Connexion au serveur impossible. Vérifiez votre réseau.'],
+    [/Modification non autorisée|row-level security|permission denied/i, 'Vous n\'avez pas les droits pour cette action.'],
+    [/JWT expired|Auth session missing/i, 'Votre session a expiré. Reconnectez-vous.'],
+  ];
+  for (const [re, msg] of map) if (re.test(raw)) return msg;
+  return raw || 'Une erreur inattendue est survenue.';
+}
+
+/** Appelle l'Edge Function d'administration des comptes. */
+export async function callAdminUsers<T = unknown>(body: Record<string, unknown>): Promise<T> {
+  const { data, error } = await supabase.functions.invoke<T>('admin-users', { body });
+  if (error) {
+    // Le message métier est dans le corps de la réponse d'erreur
+    const ctx = (error as { context?: Response }).context;
+    if (ctx && typeof ctx.json === 'function') {
+      try {
+        const payload = (await ctx.json()) as { error?: string };
+        if (payload?.error) throw new Error(payload.error);
+      } catch (e) {
+        if (e instanceof Error && e.message) throw e;
+      }
+    }
+    throw new Error(humanizeError(error));
+  }
+  return data as T;
+}
